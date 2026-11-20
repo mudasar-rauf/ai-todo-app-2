@@ -9,7 +9,7 @@ This document settles the app shell before any code exists. Build agents follow 
 - Astryx CLI **0.7.16** (`@astryxdesign/cli`, `@astryxdesign/core`, `@astryxdesign/theme-neutral` all at 0.7.16), read on 2026-11-20.
 - Every Astryx component name, import specifier, prop, command and generated path below was copied from CLI output, not from memory or the website. The commands were run in a scratch project outside this repository:
   - `astryx --version`, `--help`, `init --help`, `theme --help`, `theme list`, `theme add --help`, `theme use --help`, `theme build --help`, `component --help`
-  - `astryx component Theme`, `AppShell`, `TopNav`, `TopNavHeading`, `Layout`, `Heading`, `Stack` (and `component AppShell --source` to confirm its landmarks)
+  - `astryx component Theme`, `AppShell`, `TopNav`, `TopNavHeading`, `Layout`, `Heading`, `Stack` (and `component AppShell --source` to confirm its landmarks, `component TopNavHeading --source` to confirm it renders no `h1` to `h6`)
   - `astryx init`, `astryx theme add neutral`, `astryx theme use neutral`, `astryx doctor` in a scratch project, to see what files they write
 - The full transcript is in the pull request that added this file (#69).
 
@@ -41,6 +41,9 @@ Run in order, at the repository root, on T1.3's branch:
 7. `npx @astryxdesign/cli doctor`
    Must report `fail: 0`. Before T1.5 lands, expect the warning `theme-module-import` ("Could not prove that project source imports src/astryx-themes.js"); T1.5 clears it. The `theme-fonts` warning ("External font imports prevent proof for neutral: Figtree") is informational. List any other warning in the PR body.
 8. `npx playwright install chromium`
+9. In `index.html`, set the viewport meta to the value the AppShell docs give for phones:
+   `<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />`
+   The Vite template ships a viewport meta already; replace it, do not add a second one. The docs' optional `apple-mobile-web-app-status-bar-style` meta, for installed web apps, is **not** added: this app is not set up as an installed web app.
 
 T1.3 lists every file the CLI wrote in its PR body (expected: `AGENTS.md`, `GEMINI.md`, `src/astryx-themes.js`), and records the themes module path `src/astryx-themes.js` in the README.
 
@@ -101,17 +104,25 @@ Import `./index.css` before `./astryx-themes`, so the reset comes first and the 
 
 ## 6. Frame (T1.7)
 
-`src/App.tsx` renders the frame below and nothing else. The main landmark renders only `<TaskScreen />` (from `src/tasks/TaskScreen.tsx`, contract in `docs/contracts/tasks.md`).
+`src/App.tsx` renders the frame below and nothing else. The main landmark renders a Stack holding the page heading and then `<TaskScreen />` (from `src/tasks/TaskScreen.tsx`, contract in `docs/contracts/tasks.md`), and nothing else.
 
-**App name: `Todo`.** This exact string is the only level-1 heading; T1.7's test asserts it.
+**App name: `Todo`.** It appears twice:
+
+- as the **brand** in the TopNav `heading` slot, as plain text through `<TopNavHeading heading="Todo" />`. It adds no heading element; the TopNav docs describe the slot as "logo, brand".
+- as the **page heading**, `<Heading level={1}>Todo</Heading>`, the first child inside AppShell's `children`, so it sits inside the main landmark. This follows the AppShell docs: "Do: Start the page heading inside `children`. AppShell owns the skip link, the banner landmark and the main landmark, but it renders no heading, so the first heading in the content area is the page h1."
+
+That `h1` is the only level-1 heading on the page, and it is inside main, not inside the banner or the nav. T1.7's test asserts all three: exactly one `h1`, its text is `Todo`, and it is inside the main landmark.
 
 ```tsx
 <AppShell
   height="auto"
   contentPadding={4}
-  topNav={<TopNav label="Todo" heading={<Heading level={1}>Todo</Heading>} />}
+  topNav={<TopNav label="Todo" heading={<TopNavHeading heading="Todo" />} />}
 >
-  <TaskScreen />
+  <Stack gap={4}>
+    <Heading level={1}>Todo</Heading>
+    <TaskScreen />
+  </Stack>
 </AppShell>
 ```
 
@@ -119,11 +130,15 @@ Import `./index.css` before `./astryx-themes`, so the reset comes first and the 
 |---|---|---|---|
 | AppShell | `import {AppShell} from '@astryxdesign/core/AppShell';` | `topNav` (ReactNode), `children` (ReactNode), `height="auto"` ("lets the shell grow with content"; the docs say auto is for "pages that grow with content"), `contentPadding={4}` (the docs say 4 for "forms/settings/text") | The **banner** landmark (`role="banner"`, wraps the topNav slot) and the **main** landmark (`role="main"`, wraps `children`), plus the skip link. Exactly one of each. |
 | TopNav | `import {TopNav} from '@astryxdesign/core/TopNav';` | `heading` (ReactNode, "logo, brand"), `label` (string, "Accessible label for the navigation landmark") | A `<nav>` landmark named "Todo", inside the banner. No nav items. |
-| Heading | `import {Heading} from '@astryxdesign/core/Heading';` | `level={1}` (required), `children` = `Todo` | `<h1>Todo</h1>`, inside the banner |
+| TopNavHeading | `import {TopNavHeading} from '@astryxdesign/core/TopNav';` | `heading` (string, "Product/app name displayed as the primary heading text") = `Todo` | Brand text inside the nav. Its source renders no `h1` to `h6`, so it adds nothing to the heading outline. |
+| Stack | `import {Stack} from '@astryxdesign/core/Stack';` | `gap={4}` (spacing step, "Pass as a JSX number expression"); `direction` not passed (default `'vertical'`) | No landmark or role. Stacks the page heading above TaskScreen inside main. |
+| Heading | `import {Heading} from '@astryxdesign/core/Heading';` | `level={1}` (required), `children` = `Todo` | `<h1>Todo</h1>`, the first heading inside the main landmark |
 
 Rules from the AppShell docs that T1.7 must keep:
 
-- Do not add your own `<main>`, skip link or `<header>`: AppShell renders them, and a second main landmark "makes the first ambiguous".
+- Start the page heading inside `children` ("Do: Start the page heading inside `children`. … it renders no heading, so the first heading in the content area is the page h1."). The `h1` goes in main, never in the TopNav slot.
+- Do not add your own main landmark, skip link or banner landmark: AppShell renders them, and a second main landmark "makes the first ambiguous".
+- On phones, the page opts into the full screen with `viewport-fit=cover` ("Do: On phones, opt the page into the full screen with `viewport-fit=cover` in the viewport meta tag (`width=device-width, initial-scale=1, viewport-fit=cover`)"). `index.html` is T1.3's, so T1.3 sets it (§2, step 9); T1.7 does not touch `index.html`.
 - Do not nest AppShell, and do not use Layout as the page shell.
 - Do not pass `sideNav`, `banner` or `mobileNav`. With no sideNav there is no mobile drawer, and the default below the breakpoint is a compact bar with the heading.
 - No CSS files, no inline styles, no `xstyle` in the frame.
@@ -133,8 +148,6 @@ Rules from the AppShell docs that T1.7 must keep:
 | Component | Import (as printed) | Why not |
 |---|---|---|
 | Layout | `import {Layout} from '@astryxdesign/core/Layout';` | Its docs say "Don't: Use Layout as the page shell or for app-wide navigation; use AppShell for that responsibility", and that "Layout adds no role or name". The frame needs no header, start, end or footer regions. It stays available to feature tasks for sub-page layout inside the main landmark. |
-| Stack | `import {Stack} from '@astryxdesign/core/Stack';` | The frame has a single child in each slot, so there is nothing to stack. It stays available to TaskScreen and the feature components. |
-| TopNavHeading | `import {TopNavHeading} from '@astryxdesign/core/TopNav';` | Its `heading` prop is a `string` displayed as text, and its source renders no `h1` to `h6`. T1.7 needs a real level-1 heading, so the TopNav `heading` slot gets `<Heading level={1}>`. |
 
 ## 7. npm scripts
 
