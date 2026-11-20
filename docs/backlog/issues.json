@@ -1,0 +1,993 @@
+{
+  "labels": [
+    {
+      "name": "type:epic",
+      "color": "6F42C1",
+      "description": "Apply to an outcome slice that only tracks child stories. Never on an item that opens a PR."
+    },
+    {
+      "name": "type:story",
+      "color": "0366D6",
+      "description": "Apply to one user-visible outcome under an epic. Closes when its child reviews pass. No PR."
+    },
+    {
+      "name": "type:task",
+      "color": "6A737D",
+      "description": "Apply to one agent-sized unit ending in one PR or one review verdict. Parent is a story."
+    },
+    {
+      "name": "persona:plan",
+      "color": "F9D0C4",
+      "description": "Apply to epics, stories, and escalations (split or rewrite backlog items). Never writes code."
+    },
+    {
+      "name": "persona:architect",
+      "color": "D4C5F9",
+      "description": "Apply when output is a contract: types, stubs, file boundaries, test list. No feature behavior."
+    },
+    {
+      "name": "persona:build",
+      "color": "C2E0C6",
+      "description": "Apply when output is one PR implementing one task inside its owns list. Fix tasks too."
+    },
+    {
+      "name": "persona:review",
+      "color": "FEF2C0",
+      "description": "Apply when output is a pass/changes verdict on one PR. Reviewers never push commits."
+    },
+    {
+      "name": "wave:0",
+      "color": "1D3557",
+      "description": "Apply to serial foundation: shell, Astryx init, theme, frame, task contract. Gates wave 1."
+    },
+    {
+      "name": "wave:1",
+      "color": "457B9D",
+      "description": "Apply to feature lanes that run in parallel once every wave:0 review passes."
+    },
+    {
+      "name": "wave:2",
+      "color": "A8DADC",
+      "description": "Apply to whole-app a11y, responsive, and e2e checks after every wave:1 review passes."
+    },
+    {
+      "name": "area:shell",
+      "color": "BFD4F2",
+      "description": "Apply when it touches tooling, Astryx setup, theme, global CSS, or the app frame."
+    },
+    {
+      "name": "area:tasks",
+      "color": "BFDADC",
+      "description": "Apply when it touches the Task contract, composer, list and rows, or edit/delete dialogs."
+    },
+    {
+      "name": "area:filters",
+      "color": "C5DEF5",
+      "description": "Apply when it touches status/priority filtering, title search, or clear completed."
+    },
+    {
+      "name": "area:persistence",
+      "color": "FAD8C7",
+      "description": "Apply when it touches localStorage, the task store, or loading/empty/save-error states."
+    },
+    {
+      "name": "area:a11y",
+      "color": "D1F2EB",
+      "description": "Apply when the main check is keyboard access, focus, accessible names, or responsive layout."
+    },
+    {
+      "name": "area:quality",
+      "color": "E4E669",
+      "description": "Apply to end-to-end tests or test infrastructure that spans areas."
+    },
+    {
+      "name": "priority:p0",
+      "color": "B60205",
+      "description": "Apply when the foundation or core loop (add, see, complete, persist) needs it. Schedule first."
+    },
+    {
+      "name": "priority:p1",
+      "color": "D93F0B",
+      "description": "Apply when required for release but not for the core loop. Schedule after p0."
+    },
+    {
+      "name": "blocked",
+      "color": "000000",
+      "description": "Apply when it needs a path outside owns, a contract change, or failed 3 reviews. Comment why."
+    }
+  ],
+  "issues": [
+    {
+      "key": "E1",
+      "title": "[E1] App shell and design system",
+      "labels": [
+        "type:epic",
+        "persona:plan",
+        "wave:0",
+        "area:shell",
+        "priority:p0"
+      ],
+      "parent": null,
+      "body": "## Outcome\nThe repo runs a Vite + React 19 + TypeScript app on Astryx, with test tooling and a themed frame (header + main) that all later work renders into. Theme decision: @astryxdesign/theme-neutral, used through the themes module the Astryx CLI generates. Changing the theme needs a plan task.\n\n## Agent intent\npersona: plan\nwave: 0\nparallel_group: serial\ndepends_on: []\nowns: [\"none\"]\nmust_not:\n- Contain code or open a PR\n- Close before every child story is closed\ninputs:\n- docs/backlog/BACKLOG.md\n- https://astryx.atmeta.com/\nhandoff_to: done\ndone_when:\n- S1 is closed\nretry: if review returns changes, create one fix task for persona build, max 3, then persona plan\n\n## Acceptance\n- [ ] `npm run dev` shows the app in theme-neutral styling with a header and a main region\n- [ ] Every task under S1 has a review verdict of pass\n\n## Astryx\nnone"
+    },
+    {
+      "key": "S1",
+      "title": "[S1] Running app renders an Astryx-themed frame with a header and a main region",
+      "labels": [
+        "type:story",
+        "persona:plan",
+        "wave:0",
+        "area:shell",
+        "priority:p0"
+      ],
+      "parent": "E1",
+      "body": "## Outcome\nOpening the dev server shows an Astryx-styled page: a header with the app name and a main region where the task screen mounts. Typecheck, lint, Vitest, and Playwright are set up, so no feature task touches package.json.\n\n## Agent intent\npersona: plan\nwave: 0\nparallel_group: serial\ndepends_on: []\nowns: [\"none\"]\nmust_not:\n- Contain code or open a PR\n- Close until every child task's review verdict is pass and the Acceptance below is checked on main\ninputs:\n- Parent epic E1\n- docs/backlog/BACKLOG.md\nhandoff_to: architect\ndone_when:\n- T1.2, T1.4, T1.6, T1.8 have verdict pass\nretry: if review returns changes, create one fix task for persona build, max 3, then persona plan\n\n## Acceptance\n- [ ] `npm run dev`: header with the app name, main region below, no Vite demo content\n- [ ] Text and spacing come from theme-neutral (no default browser body margin, Astryx font)\n- [ ] The browser accessibility tree shows one banner landmark and one main landmark\n- [ ] `npm ci && npm test && npm run build` succeed on a fresh clone\n\n## Astryx\nnone"
+    },
+    {
+      "key": "T1.1",
+      "title": "[T1.1] Architect: shell contract (setup, theme, frame, file boundaries)",
+      "labels": [
+        "type:task",
+        "persona:architect",
+        "wave:0",
+        "area:shell",
+        "priority:p0"
+      ],
+      "parent": "S1",
+      "body": "## Outcome\ndocs/contracts/shell.md settles the shell before any code: setup commands in order, the exact owns of T1.3, T1.5 and T1.7, the theme decision (theme-neutral), the two global CSS imports, how Theme wraps the root (from CLI docs), which Astryx components build the frame (with import specifiers and props the CLI printed), and the npm script names later agents rely on.\n\n## Agent intent\npersona: architect\nwave: 0\nparallel_group: serial\ndepends_on: []\nowns: [\"docs/contracts/shell.md\"]\nmust_not:\n- Implement feature behavior; stubs (if any) only return null, a copy of their input, or inert values\n- Edit any path not in owns\n- Name an Astryx component, import specifier, or prop the CLI did not print\n- Run `npx @astryxdesign/cli init` in the repo (T1.3 does)\ninputs:\n- https://astryx.atmeta.com/ and https://astryx.atmeta.com/docs/cli\n- `npx @astryxdesign/cli --help`\n- `npx @astryxdesign/cli init --help` and `npx @astryxdesign/cli theme --help`\n- `npx @astryxdesign/cli component Theme` plus each frame component under Astryx\n- docs/backlog/BACKLOG.md section 4 (ownership map)\nhandoff_to: review\ndone_when:\n- shell.md lists the owns of T1.3, T1.5 and T1.7 exactly as in the ownership map\n- shell.md records theme-neutral and the Theme import specifier printed by the CLI\n- shell.md names the frame components with their specifiers and props, as the CLI printed them\n- shell.md fixes script names: dev, build, preview, typecheck, lint, test, test:e2e\n- One branch, one PR; body says `Closes #<this issue>` and pastes the CLI output it relied on\nretry: if review returns changes, create one fix task for persona build, max 3, then persona plan\n\n## Acceptance\n- [ ] Reading only shell.md, a person can list the setup commands, the theme, and which task owns src/main.tsx\n- [ ] shell.md states the two global CSS imports verbatim: `@import '@astryxdesign/core/reset.css';` then `@import '@astryxdesign/core/astryx.css';`\n\n## Astryx\nComponents to confirm with `npx @astryxdesign/cli component <Name>` before use:\n- Theme\n- AppShell\n- TopNav\n- Layout\n- Heading\n- Stack"
+    },
+    {
+      "key": "T1.2",
+      "title": "[T1.2] Review: shell contract (setup, theme, frame, file boundaries)",
+      "labels": [
+        "type:task",
+        "persona:review",
+        "wave:0",
+        "area:shell",
+        "priority:p0"
+      ],
+      "parent": "S1",
+      "body": "## Outcome\nA pass or changes verdict exists on the PR for [T1.1] Architect: shell contract (setup, theme, frame, file boundaries), based on its done_when, its Acceptance, and Astryx usage checked against CLI output. On pass the orchestrator merges the PR; on changes one fix task exists.\n\n## Agent intent\npersona: review\nwave: 0\nparallel_group: serial\ndepends_on: [\"[T1.1] Architect: shell contract (setup, theme, frame, file boundaries)\"]\nowns: [\"none\"]\nmust_not:\n- Push commits to, or edit files in, the PR under review\n- Pass with any failing check or unmet item\n- Widen scope: findings outside the target's owns become a comment for plan, not a blocker\ninputs:\n- The PR that closes [T1.1] Architect: shell contract (setup, theme, frame, file boundaries)\n- Issue [T1.1] Architect: shell contract (setup, theme, frame, file boundaries)\n- Every doc listed in T1.1's inputs\n- `npx @astryxdesign/cli component <Name>` for each Astryx component the PR imports or names\nhandoff_to: done\ndone_when:\n- Verdict comment posted as `verdict: pass` or `verdict: changes` with the failing items listed\n- On pass: PR approved; orchestrator merges it and closes T1.1\n- On changes: one fix task opened per the retry rule and linked here; this review re-runs on the updated PR\nretry: if review returns changes, create one fix task for persona build, max 3, then persona plan\n\n## Acceptance\n- [ ] Verdict comment on the PR marks every done_when and Acceptance item of [T1.1] Architect: shell contract (setup, theme, frame, file boundaries) as met or not met, with evidence (command output or screenshot)\n- [ ] The diff touches only paths in T1.1's owns\n- [ ] Every component named in the contract was confirmed with the CLI; recorded specifiers and props match its output\n- [ ] Stubs (if any) contain no feature behavior and the contract matches docs/backlog/BACKLOG.md section 4\n\n## Astryx\nComponents to confirm with `npx @astryxdesign/cli component <Name>` before use:\n- Theme\n- AppShell\n- TopNav\n- Layout\n- Heading\n- Stack"
+    },
+    {
+      "key": "T1.3",
+      "title": "[T1.3] Build: scaffold Vite + React 19 + TS, Astryx init, test tooling",
+      "labels": [
+        "type:task",
+        "persona:build",
+        "wave:0",
+        "area:shell",
+        "priority:p0"
+      ],
+      "parent": "S1",
+      "body": "## Outcome\nThe repo is a Vite + React 19 + TypeScript project with the four Astryx packages installed, `npx @astryxdesign/cli init` applied, theme-neutral available through the generated themes module, and Vitest + Testing Library + Playwright ready. After this, no task needs to touch package.json.\n\n## Agent intent\npersona: build\nwave: 0\nparallel_group: serial\ndepends_on: [\"[T1.2] Review: shell contract (setup, theme, frame, file boundaries)\"]\nowns: [\"package.json\", \"package-lock.json\", \"index.html\", \"vite.config.ts\", \"tsconfig.json\", \"tsconfig.app.json\", \"tsconfig.node.json\", \"eslint.config.js\", \".gitignore\", \"README.md\", \"src/vite-env.d.ts\", \"src/test/setup.ts\", \"playwright.config.ts\", \"CLI-generated: every file `npx @astryxdesign/cli init` or `theme` writes (themes module, astryx.config.*, agent docs), each listed in the PR body\"]\nmust_not:\n- Edit, create, or delete any path not in owns. Need one? Add label `blocked`, comment why, hand to plan.\n- Use an Astryx component, import path, or prop that `npx @astryxdesign/cli component <Name>` does not print; hard-code colors, spacing, radii, shadows, or fonts.\n- Hand-edit src/main.tsx, src/index.css, src/App.tsx, src/App.css, src/assets/**, public/** (template output only; T1.5 and T1.7 own them). If the CLI rewrites one, keep its change and list it in the PR body.\n- Delete or overwrite docs/**. If the Vite scaffolder reports a non-empty directory, choose to ignore existing files, never to remove them.\n- Pick any theme other than @astryxdesign/theme-neutral\n- Add packages beyond those named in done_when\ninputs:\n- docs/contracts/shell.md\n- `npm create vite@latest . -- --template react-ts`\n- `npm install @astryxdesign/core @stylexjs/stylex @astryxdesign/theme-neutral @astryxdesign/cli`\n- `npx @astryxdesign/cli init`; if it does not produce a themes module with theme-neutral, `npx @astryxdesign/cli theme --help`\n- `npx @astryxdesign/cli doctor`\nhandoff_to: review\ndone_when:\n- One branch, one PR; body says `Closes #<this issue>`; the diff touches only owns\n- package.json has react and react-dom 19, the four Astryx packages, and devDependencies vitest, jsdom, @testing-library/react, @testing-library/user-event, @testing-library/jest-dom, @playwright/test\n- Scripts exist: dev, build, preview, typecheck, lint, test (`vitest run`), test:e2e (`playwright test`)\n- Vitest uses jsdom, setupFiles src/test/setup.ts (loads jest-dom matchers), passWithNoTests true, and excludes e2e/**\n- playwright.config.ts: testDir e2e, webServer runs `npm run build && npm run preview`, projects Desktop Chrome and Pixel 7\n- `npx @astryxdesign/cli doctor` reports no errors\n- README lists every script, the themes module path, and `npx playwright install chromium`\n- `npm run typecheck`, `npm run lint`, `npm test`, and `npm run build` exit 0 on the PR branch\nretry: if review returns changes, create one fix task for persona build, max 3, then persona plan\n\n## Acceptance\n- [ ] On a fresh clone, `npm ci && npm run build && npm test` succeed\n- [ ] `npm run dev` serves a page (Vite template content is expected at this point)\n- [ ] The PR body lists every file the Astryx CLI wrote\n\n## Astryx\nnone"
+    },
+    {
+      "key": "T1.4",
+      "title": "[T1.4] Review: scaffold Vite + React 19 + TS, Astryx init, test tooling",
+      "labels": [
+        "type:task",
+        "persona:review",
+        "wave:0",
+        "area:shell",
+        "priority:p0"
+      ],
+      "parent": "S1",
+      "body": "## Outcome\nA pass or changes verdict exists on the PR for [T1.3] Build: scaffold Vite + React 19 + TS, Astryx init, test tooling, based on its done_when, its Acceptance, and Astryx usage checked against CLI output. On pass the orchestrator merges the PR; on changes one fix task exists.\n\n## Agent intent\npersona: review\nwave: 0\nparallel_group: serial\ndepends_on: [\"[T1.3] Build: scaffold Vite + React 19 + TS, Astryx init, test tooling\"]\nowns: [\"none\"]\nmust_not:\n- Push commits to, or edit files in, the PR under review\n- Pass with any failing check or unmet item\n- Widen scope: findings outside the target's owns become a comment for plan, not a blocker\ninputs:\n- The PR that closes [T1.3] Build: scaffold Vite + React 19 + TS, Astryx init, test tooling\n- Issue [T1.3] Build: scaffold Vite + React 19 + TS, Astryx init, test tooling\n- Every doc listed in T1.3's inputs\n- `npx @astryxdesign/cli component <Name>` for each Astryx component the PR imports or names\nhandoff_to: done\ndone_when:\n- Verdict comment posted as `verdict: pass` or `verdict: changes` with the failing items listed\n- On pass: PR approved; orchestrator merges it and closes T1.3\n- On changes: one fix task opened per the retry rule and linked here; this review re-runs on the updated PR\nretry: if review returns changes, create one fix task for persona build, max 3, then persona plan\n\n## Acceptance\n- [ ] Verdict comment on the PR marks every done_when and Acceptance item of [T1.3] Build: scaffold Vite + React 19 + TS, Astryx init, test tooling as met or not met, with evidence (command output or screenshot)\n- [ ] The diff touches only paths in T1.3's owns\n- [ ] Every Astryx import in the diff matches the entry printed by `npx @astryxdesign/cli component <Name>`, and every prop used appears in that output\n- [ ] No hard-coded colors, spacing, radii, shadows, or fonts\n- [ ] `npm run typecheck`, `npm run lint`, `npm test`, and `npm run build` exit 0 when the reviewer runs them on the PR branch\n\n## Astryx\nnone"
+    },
+    {
+      "key": "T1.5",
+      "title": "[T1.5] Build: wire theme-neutral and global CSS",
+      "labels": [
+        "type:task",
+        "persona:build",
+        "wave:0",
+        "area:shell",
+        "priority:p0"
+      ],
+      "parent": "S1",
+      "body": "## Outcome\nEvery render goes through Astryx: src/index.css loads the reset and astryx.css, and src/main.tsx wraps <App /> in the Astryx Theme built from the generated themes module with theme-neutral.\n\n## Agent intent\npersona: build\nwave: 0\nparallel_group: serial\ndepends_on: [\"[T1.4] Review: scaffold Vite + React 19 + TS, Astryx init, test tooling\"]\nowns: [\"src/main.tsx\", \"src/index.css\"]\nmust_not:\n- Edit, create, or delete any path not in owns. Need one? Add label `blocked`, comment why, hand to plan.\n- Use an Astryx component, import path, or prop that `npx @astryxdesign/cli component <Name>` does not print; hard-code colors, spacing, radii, shadows, or fonts.\n- Put anything in src/index.css except the two @import lines\n- Import a theme from anywhere but the generated themes module\n- Edit src/App.tsx\ninputs:\n- docs/contracts/shell.md\n- README (themes module path)\n- `npx @astryxdesign/cli component Theme`\nhandoff_to: review\ndone_when:\n- One branch, one PR; body says `Closes #<this issue>`; the diff touches only owns\n- src/index.css is exactly `@import '@astryxdesign/core/reset.css';` then `@import '@astryxdesign/core/astryx.css';`\n- src/main.tsx imports ./index.css and renders StrictMode > Theme (theme-neutral) > App\n- The dev page logs no console errors or warnings\n- `npm run typecheck`, `npm run lint`, `npm test`, and `npm run build` exit 0 on the PR branch\nretry: if review returns changes, create one fix task for persona build, max 3, then persona plan\n\n## Acceptance\n- [ ] In the dev page, body margin is 0 and text uses the theme-neutral font (computed styles in devtools)\n- [ ] Removing the Theme wrapper locally visibly changes the page (proves the theme applies); restore before pushing\n\n## Astryx\nComponents to confirm with `npx @astryxdesign/cli component <Name>` before use:\n- Theme"
+    },
+    {
+      "key": "T1.6",
+      "title": "[T1.6] Review: wire theme-neutral and global CSS",
+      "labels": [
+        "type:task",
+        "persona:review",
+        "wave:0",
+        "area:shell",
+        "priority:p0"
+      ],
+      "parent": "S1",
+      "body": "## Outcome\nA pass or changes verdict exists on the PR for [T1.5] Build: wire theme-neutral and global CSS, based on its done_when, its Acceptance, and Astryx usage checked against CLI output. On pass the orchestrator merges the PR; on changes one fix task exists.\n\n## Agent intent\npersona: review\nwave: 0\nparallel_group: serial\ndepends_on: [\"[T1.5] Build: wire theme-neutral and global CSS\"]\nowns: [\"none\"]\nmust_not:\n- Push commits to, or edit files in, the PR under review\n- Pass with any failing check or unmet item\n- Widen scope: findings outside the target's owns become a comment for plan, not a blocker\ninputs:\n- The PR that closes [T1.5] Build: wire theme-neutral and global CSS\n- Issue [T1.5] Build: wire theme-neutral and global CSS\n- Every doc listed in T1.5's inputs\n- `npx @astryxdesign/cli component <Name>` for each Astryx component the PR imports or names\nhandoff_to: done\ndone_when:\n- Verdict comment posted as `verdict: pass` or `verdict: changes` with the failing items listed\n- On pass: PR approved; orchestrator merges it and closes T1.5\n- On changes: one fix task opened per the retry rule and linked here; this review re-runs on the updated PR\nretry: if review returns changes, create one fix task for persona build, max 3, then persona plan\n\n## Acceptance\n- [ ] Verdict comment on the PR marks every done_when and Acceptance item of [T1.5] Build: wire theme-neutral and global CSS as met or not met, with evidence (command output or screenshot)\n- [ ] The diff touches only paths in T1.5's owns\n- [ ] Every Astryx import in the diff matches the entry printed by `npx @astryxdesign/cli component <Name>`, and every prop used appears in that output\n- [ ] No hard-coded colors, spacing, radii, shadows, or fonts\n- [ ] `npm run typecheck`, `npm run lint`, `npm test`, and `npm run build` exit 0 when the reviewer runs them on the PR branch\n\n## Astryx\nComponents to confirm with `npx @astryxdesign/cli component <Name>` before use:\n- Theme"
+    },
+    {
+      "key": "E2",
+      "title": "[E2] Task contract",
+      "labels": [
+        "type:epic",
+        "persona:plan",
+        "wave:0",
+        "area:tasks",
+        "priority:p0"
+      ],
+      "parent": null,
+      "body": "## Outcome\nOne Task type, one TaskStorage interface, one TaskStore shape, and a typed stub for every wave-1 file are on main, and TaskScreen wires them together. Each wave-1 build replaces exactly one set of stubs and needs no other file. No feature behavior ships in this epic.\n\n## Agent intent\npersona: plan\nwave: 0\nparallel_group: serial\ndepends_on: []\nowns: [\"none\"]\nmust_not:\n- Contain code or open a PR\n- Close before every child story is closed\ninputs:\n- docs/backlog/BACKLOG.md\n- https://astryx.atmeta.com/\nhandoff_to: done\ndone_when:\n- S2 is closed\nretry: if review returns changes, create one fix task for persona build, max 3, then persona plan\n\n## Acceptance\n- [ ] src/tasks/types.ts and src/tasks/storage.ts exist on main and `npm run typecheck` passes\n- [ ] Every wave-1 build task's owns names a file that already exists on main as a stub\n\n## Astryx\nnone"
+    },
+    {
+      "key": "S2",
+      "title": "[S2] Every feature shares one Task type and one storage interface",
+      "labels": [
+        "type:story",
+        "persona:plan",
+        "wave:0",
+        "area:tasks",
+        "priority:p0"
+      ],
+      "parent": "E2",
+      "body": "## Outcome\nWave-1 agents build against a fixed contract (types, storage interface, store shape, component props, file boundaries) and a composition root that already renders every feature slot, so lanes never edit a shared file.\n\n## Agent intent\npersona: plan\nwave: 0\nparallel_group: serial\ndepends_on: []\nowns: [\"none\"]\nmust_not:\n- Contain code or open a PR\n- Close until every child task's review verdict is pass and the Acceptance below is checked on main\ninputs:\n- Parent epic E2\n- docs/backlog/BACKLOG.md\nhandoff_to: architect\ndone_when:\n- T2.2 and T2.4 have verdict pass\nretry: if review returns changes, create one fix task for persona build, max 3, then persona plan\n\n## Acceptance\n- [ ] docs/contracts/tasks.md names, for each wave-1 file, its owner task, its exports, and its test list\n- [ ] The running app still renders the frame with no console errors while every feature is a stub\n- [ ] tasks.md states that changing a contract type after this story closes needs a plan task\n\n## Astryx\nnone"
+    },
+    {
+      "key": "T2.1",
+      "title": "[T2.1] Architect: Task type, storage interface, store shape, and stubs",
+      "labels": [
+        "type:task",
+        "persona:architect",
+        "wave:0",
+        "area:tasks",
+        "priority:p0"
+      ],
+      "parent": "S2",
+      "body": "## Outcome\nThe shared contract exists as code and one doc. types.ts and storage.ts are the only shared modules; every wave-1 file exists as a behavior-free stub with its final exports, so the composition root compiles and each lane replaces only its own stubs.\n\n## Agent intent\npersona: architect\nwave: 0\nparallel_group: serial\ndepends_on: [\"[T1.6] Review: wire theme-neutral and global CSS\"]\nowns: [\"src/tasks/types.ts\", \"src/tasks/storage.ts\", \"docs/contracts/tasks.md\", \"src/tasks/TaskScreen.tsx (stub only; passes to T2.3 when T2.2 is pass)\", \"src/tasks/TaskComposer.tsx (stub only; passes to T3.3 when T2.2 is pass)\", \"src/tasks/TaskRow.tsx (stub only; passes to T4.3 when T2.2 is pass)\", \"src/tasks/TaskList.tsx (stub only; passes to T4.5 when T2.2 is pass)\", \"src/tasks/sortTasks.ts (stub only; passes to T4.5 when T2.2 is pass)\", \"src/tasks/EditTaskDialog.tsx (stub only; passes to T5.3 when T2.2 is pass)\", \"src/tasks/ConfirmDeleteDialog.tsx (stub only; passes to T5.5 when T2.2 is pass)\", \"src/tasks/filterTasks.ts (stub only; passes to T6.3 when T2.2 is pass)\", \"src/tasks/FilterBar.tsx (stub only; passes to T6.5 when T2.2 is pass)\", \"src/tasks/SearchField.tsx (stub only; passes to T6.7 when T2.2 is pass)\", \"src/tasks/localTaskStorage.ts (stub only; passes to T7.3 when T2.2 is pass)\", \"src/tasks/useTasks.ts (stub only; passes to T7.5 when T2.2 is pass)\", \"src/tasks/StatusViews.tsx (stub only; passes to T7.7 when T2.2 is pass)\", \"src/tasks/SaveErrorBanner.tsx (stub only; passes to T7.9 when T2.2 is pass)\"]\nmust_not:\n- Implement feature behavior; stubs (if any) only return null, a copy of their input, or inert values\n- Edit any path not in owns\n- Name an Astryx component, import specifier, or prop the CLI did not print\n- Import Astryx components in stubs\ninputs:\n- docs/contracts/shell.md\n- docs/backlog/BACKLOG.md sections 2 and 4\n- README (scripts)\nhandoff_to: review\ndone_when:\n- types.ts exports at least: Priority = 'none' | 'low' | 'medium' | 'high'; PRIORITIES; Task { id: string; title: string; notes: string; priority: Priority; dueDate: string | null (YYYY-MM-DD local calendar date); completed: boolean; createdAt: number }; TaskDraft (title, notes, priority, dueDate); TaskPatch (Partial of TaskDraft plus completed); StatusFilter = 'all' | 'active' | 'completed'; TaskQuery { status; priority: Priority | 'any'; search: string }; DEFAULT_QUERY; COMPOSER_TITLE_ID\n- types.ts exports TaskStore { status: 'loading' | 'ready'; tasks: Task[]; saveError: string | null; add(draft); update(id, patch); remove(id); clearCompleted() }\n- types.ts exports props types: TaskScreenProps { storage?: TaskStorage }; TaskComposerProps { onAdd }; TaskRowProps { task; onToggle(id); onEdit(task); onDelete(task) }; TaskListProps { tasks; onToggle; onEdit; onDelete }; EditTaskDialogProps { task: Task | null; onSave(id, patch); onClose }; ConfirmDeleteDialogProps { task: Task | null; onConfirm(id); onClose }; FilterBarProps { query; onChange(query); completedCount; onClearCompleted }; SearchFieldProps { value; onChange(value) }; EmptyStateProps { variant: 'no-tasks' | 'no-matches'; onClearFilters }; SaveErrorBannerProps { message: string | null }\n- storage.ts exports TaskStorage { load(): Task[]; save(tasks: readonly Task[]): void } (save throws on failure) and STORAGE_KEY\n- Stub exports: TaskScreen, TaskComposer, TaskRow, TaskList, sortTasks(tasks), EditTaskDialog, ConfirmDeleteDialog, filterTasks(tasks, query), FilterBar, SearchField, createLocalTaskStorage(storage?) and localTaskStorage, useTasks(storage), LoadingState and EmptyState (StatusViews.tsx), SaveErrorBanner\n- tasks.md covers: component tree, data flow, store rules (no save before first load completes; a failed save keeps the list and sets saveError; the next successful save clears it), sort rule, filter rule, focus rules, test list per file, ownership table\n- The app builds and renders the frame with every stub in place\n- One branch, one PR; body says `Closes #<this issue>` and pastes the CLI output it relied on\nretry: if review returns changes, create one fix task for persona build, max 3, then persona plan\n\n## Acceptance\n- [ ] Reading tasks.md alone, a person can say which task owns any file under src/tasks/ and what it exports\n- [ ] `npm run typecheck` and `npm run build` pass on the PR branch\n- [ ] Every stub's body is `return null`, an input copy, or an inert value (reviewer spot-checks all 14)\n\n## Astryx\nnone"
+    },
+    {
+      "key": "T2.2",
+      "title": "[T2.2] Review: Task type, storage interface, store shape, and stubs",
+      "labels": [
+        "type:task",
+        "persona:review",
+        "wave:0",
+        "area:tasks",
+        "priority:p0"
+      ],
+      "parent": "S2",
+      "body": "## Outcome\nA pass or changes verdict exists on the PR for [T2.1] Architect: Task type, storage interface, store shape, and stubs, based on its done_when, its Acceptance, and Astryx usage checked against CLI output. On pass the orchestrator merges the PR; on changes one fix task exists.\n\n## Agent intent\npersona: review\nwave: 0\nparallel_group: serial\ndepends_on: [\"[T2.1] Architect: Task type, storage interface, store shape, and stubs\"]\nowns: [\"none\"]\nmust_not:\n- Push commits to, or edit files in, the PR under review\n- Pass with any failing check or unmet item\n- Widen scope: findings outside the target's owns become a comment for plan, not a blocker\ninputs:\n- The PR that closes [T2.1] Architect: Task type, storage interface, store shape, and stubs\n- Issue [T2.1] Architect: Task type, storage interface, store shape, and stubs\n- Every doc listed in T2.1's inputs\n- `npx @astryxdesign/cli component <Name>` for each Astryx component the PR imports or names\nhandoff_to: done\ndone_when:\n- Verdict comment posted as `verdict: pass` or `verdict: changes` with the failing items listed\n- On pass: PR approved; orchestrator merges it and closes T2.1\n- On changes: one fix task opened per the retry rule and linked here; this review re-runs on the updated PR\nretry: if review returns changes, create one fix task for persona build, max 3, then persona plan\n\n## Acceptance\n- [ ] Verdict comment on the PR marks every done_when and Acceptance item of [T2.1] Architect: Task type, storage interface, store shape, and stubs as met or not met, with evidence (command output or screenshot)\n- [ ] The diff touches only paths in T2.1's owns\n- [ ] Every component named in the contract was confirmed with the CLI; recorded specifiers and props match its output\n- [ ] Stubs (if any) contain no feature behavior and the contract matches docs/backlog/BACKLOG.md section 4\n\n## Astryx\nnone"
+    },
+    {
+      "key": "T1.7",
+      "title": "[T1.7] Build: app frame with header and main region",
+      "labels": [
+        "type:task",
+        "persona:build",
+        "wave:0",
+        "area:shell",
+        "priority:p0"
+      ],
+      "parent": "S1",
+      "body": "## Outcome\nThe running app shows a header (banner landmark) whose only h1 is the app name and a main landmark that renders <TaskScreen />, laid out with the Astryx components chosen in docs/contracts/shell.md. The Vite demo files are gone.\n\n## Agent intent\npersona: build\nwave: 0\nparallel_group: serial\ndepends_on: [\"[T2.2] Review: Task type, storage interface, store shape, and stubs\"]\nowns: [\"src/App.tsx\", \"src/App.test.tsx\", \"src/App.css (delete)\", \"src/assets/react.svg (delete)\", \"public/vite.svg (delete)\"]\nmust_not:\n- Edit, create, or delete any path not in owns. Need one? Add label `blocked`, comment why, hand to plan.\n- Use an Astryx component, import path, or prop that `npx @astryxdesign/cli component <Name>` does not print; hard-code colors, spacing, radii, shadows, or fonts.\n- Render task UI directly; main only renders <TaskScreen />\n- Add CSS files or inline styles\n- Edit src/main.tsx\ninputs:\n- docs/contracts/shell.md\n- docs/contracts/tasks.md (from T2.1)\n- `npx @astryxdesign/cli component <Name>` for every component under Astryx; import only from the entry it prints\nhandoff_to: review\ndone_when:\n- One branch, one PR; body says `Closes #<this issue>`; the diff touches only owns\n- App.test.tsx asserts one banner landmark holding a level-1 heading with the app name, and one main landmark\n- Nothing references the deleted demo files\n- `npm run typecheck`, `npm run lint`, `npm test`, and `npm run build` exit 0 on the PR branch\nretry: if review returns changes, create one fix task for persona build, max 3, then persona plan\n\n## Acceptance\n- [ ] Dev page: header with the app name at the top, main region below, no Vite or React logos\n- [ ] At 375px width there is no horizontal scrollbar\n- [ ] The browser accessibility tree shows banner and main landmarks\n\n## Astryx\nComponents to confirm with `npx @astryxdesign/cli component <Name>` before use:\n- AppShell\n- TopNav\n- Layout\n- Heading\n- Stack"
+    },
+    {
+      "key": "T1.8",
+      "title": "[T1.8] Review: app frame with header and main region",
+      "labels": [
+        "type:task",
+        "persona:review",
+        "wave:0",
+        "area:shell",
+        "priority:p0"
+      ],
+      "parent": "S1",
+      "body": "## Outcome\nA pass or changes verdict exists on the PR for [T1.7] Build: app frame with header and main region, based on its done_when, its Acceptance, and Astryx usage checked against CLI output. On pass the orchestrator merges the PR; on changes one fix task exists.\n\n## Agent intent\npersona: review\nwave: 0\nparallel_group: serial\ndepends_on: [\"[T1.7] Build: app frame with header and main region\"]\nowns: [\"none\"]\nmust_not:\n- Push commits to, or edit files in, the PR under review\n- Pass with any failing check or unmet item\n- Widen scope: findings outside the target's owns become a comment for plan, not a blocker\ninputs:\n- The PR that closes [T1.7] Build: app frame with header and main region\n- Issue [T1.7] Build: app frame with header and main region\n- Every doc listed in T1.7's inputs\n- `npx @astryxdesign/cli component <Name>` for each Astryx component the PR imports or names\nhandoff_to: done\ndone_when:\n- Verdict comment posted as `verdict: pass` or `verdict: changes` with the failing items listed\n- On pass: PR approved; orchestrator merges it and closes T1.7\n- On changes: one fix task opened per the retry rule and linked here; this review re-runs on the updated PR\nretry: if review returns changes, create one fix task for persona build, max 3, then persona plan\n\n## Acceptance\n- [ ] Verdict comment on the PR marks every done_when and Acceptance item of [T1.7] Build: app frame with header and main region as met or not met, with evidence (command output or screenshot)\n- [ ] The diff touches only paths in T1.7's owns\n- [ ] Every Astryx import in the diff matches the entry printed by `npx @astryxdesign/cli component <Name>`, and every prop used appears in that output\n- [ ] No hard-coded colors, spacing, radii, shadows, or fonts\n- [ ] `npm run typecheck`, `npm run lint`, `npm test`, and `npm run build` exit 0 when the reviewer runs them on the PR branch\n\n## Astryx\nComponents to confirm with `npx @astryxdesign/cli component <Name>` before use:\n- AppShell\n- TopNav\n- Layout\n- Heading\n- Stack"
+    },
+    {
+      "key": "T2.3",
+      "title": "[T2.3] Build: compose TaskScreen from contract stubs",
+      "labels": [
+        "type:task",
+        "persona:build",
+        "wave:0",
+        "area:tasks",
+        "priority:p0"
+      ],
+      "parent": "S2",
+      "body": "## Outcome\nTaskScreen holds all screen state and wiring, so wave-1 lanes never touch it. It calls useTasks(storage ?? localTaskStorage) and holds the TaskQuery, the task being edited, and the task pending delete. It renders SaveErrorBanner, TaskComposer, SearchField, FilterBar, then LoadingState, TaskList, or EmptyState, then EditTaskDialog and ConfirmDeleteDialog. As each stub is replaced, its feature appears with no more wiring.\n\n## Agent intent\npersona: build\nwave: 0\nparallel_group: serial\ndepends_on: [\"[T1.8] Review: app frame with header and main region\"]\nowns: [\"src/tasks/TaskScreen.tsx\", \"src/tasks/TaskScreen.test.tsx\"]\nmust_not:\n- Edit, create, or delete any path not in owns. Need one? Add label `blocked`, comment why, hand to plan.\n- Use an Astryx component, import path, or prop that `npx @astryxdesign/cli component <Name>` does not print; hard-code colors, spacing, radii, shadows, or fonts.\n- Implement child behavior (sorting, filtering, persistence, validation)\n- Edit any stub file\n- Add dependencies or touch src/tasks/types.ts or src/tasks/storage.ts\ninputs:\n- docs/contracts/tasks.md (from T2.1)\n- docs/contracts/shell.md\n- `npx @astryxdesign/cli component <Name>` for every component under Astryx; import only from the entry it prints\nhandoff_to: review\ndone_when:\n- One branch, one PR; body says `Closes #<this issue>`; the diff touches only owns\n- TaskScreen.test.tsx mocks child modules with vi.mock and passes: passes filterTasks(tasks, query) to TaskList\n- Test: shows LoadingState while status is 'loading'\n- Test: shows EmptyState 'no-tasks' when there are no tasks and 'no-matches' when tasks exist but none are visible; onClearFilters resets the query to DEFAULT_QUERY\n- Test: onToggle(id) calls update(id, { completed: !task.completed })\n- Test: onEdit opens EditTaskDialog with that task; onSave calls update and closes it\n- Test: onDelete opens ConfirmDeleteDialog; onConfirm calls remove(id), closes it, and focuses the element with id COMPOSER_TITLE_ID\n- Test: FilterBar gets completedCount and onClearCompleted calls clearCompleted; SaveErrorBanner gets saveError\n- `npm run typecheck`, `npm run lint`, `npm test`, and `npm run build` exit 0 on the PR branch\nretry: if review returns changes, create one fix task for persona build, max 3, then persona plan\n\n## Acceptance\n- [ ] `npm test -- TaskScreen` lists the wiring tests above as passing\n- [ ] The dev page renders the header and an empty main with no console errors (children are still stubs)\n\n## Astryx\nComponents to confirm with `npx @astryxdesign/cli component <Name>` before use:\n- Stack"
+    },
+    {
+      "key": "T2.4",
+      "title": "[T2.4] Review: compose TaskScreen from contract stubs",
+      "labels": [
+        "type:task",
+        "persona:review",
+        "wave:0",
+        "area:tasks",
+        "priority:p0"
+      ],
+      "parent": "S2",
+      "body": "## Outcome\nA pass or changes verdict exists on the PR for [T2.3] Build: compose TaskScreen from contract stubs, based on its done_when, its Acceptance, and Astryx usage checked against CLI output. On pass the orchestrator merges the PR; on changes one fix task exists.\n\n## Agent intent\npersona: review\nwave: 0\nparallel_group: serial\ndepends_on: [\"[T2.3] Build: compose TaskScreen from contract stubs\"]\nowns: [\"none\"]\nmust_not:\n- Push commits to, or edit files in, the PR under review\n- Pass with any failing check or unmet item\n- Widen scope: findings outside the target's owns become a comment for plan, not a blocker\ninputs:\n- The PR that closes [T2.3] Build: compose TaskScreen from contract stubs\n- Issue [T2.3] Build: compose TaskScreen from contract stubs\n- Every doc listed in T2.3's inputs\n- `npx @astryxdesign/cli component <Name>` for each Astryx component the PR imports or names\nhandoff_to: done\ndone_when:\n- Verdict comment posted as `verdict: pass` or `verdict: changes` with the failing items listed\n- On pass: PR approved; orchestrator merges it and closes T2.3\n- On changes: one fix task opened per the retry rule and linked here; this review re-runs on the updated PR\nretry: if review returns changes, create one fix task for persona build, max 3, then persona plan\n\n## Acceptance\n- [ ] Verdict comment on the PR marks every done_when and Acceptance item of [T2.3] Build: compose TaskScreen from contract stubs as met or not met, with evidence (command output or screenshot)\n- [ ] The diff touches only paths in T2.3's owns\n- [ ] Every Astryx import in the diff matches the entry printed by `npx @astryxdesign/cli component <Name>`, and every prop used appears in that output\n- [ ] No hard-coded colors, spacing, radii, shadows, or fonts\n- [ ] `npm run typecheck`, `npm run lint`, `npm test`, and `npm run build` exit 0 when the reviewer runs them on the PR branch\n\n## Astryx\nComponents to confirm with `npx @astryxdesign/cli component <Name>` before use:\n- Stack"
+    },
+    {
+      "key": "E3",
+      "title": "[E3] Capture a task",
+      "labels": [
+        "type:epic",
+        "persona:plan",
+        "wave:1",
+        "area:tasks",
+        "priority:p0"
+      ],
+      "parent": null,
+      "body": "## Outcome\nA user can add a task with a required title and optional notes, priority, and due date from a form at the top of the screen.\n\n## Agent intent\npersona: plan\nwave: 1\nparallel_group: capture\ndepends_on: [\"[E1] App shell and design system\", \"[E2] Task contract\"]\nowns: [\"none\"]\nmust_not:\n- Contain code or open a PR\n- Close before every child story is closed\ninputs:\n- docs/backlog/BACKLOG.md\n- https://astryx.atmeta.com/\nhandoff_to: done\ndone_when:\n- S3 is closed\nretry: if review returns changes, create one fix task for persona build, max 3, then persona plan\n\n## Acceptance\n- [ ] S3 Acceptance checked on main\n\n## Astryx\nnone"
+    },
+    {
+      "key": "S3",
+      "title": "[S3] User adds a task with title, notes, priority, and due date, and sees it appear",
+      "labels": [
+        "type:story",
+        "persona:plan",
+        "wave:1",
+        "area:tasks",
+        "priority:p0"
+      ],
+      "parent": "E3",
+      "body": "## Outcome\nThe composer adds valid tasks to the top of the list and refuses empty titles with a visible, associated error.\n\n## Agent intent\npersona: plan\nwave: 1\nparallel_group: capture\ndepends_on: [\"[S1] Running app renders an Astryx-themed frame with a header and a main region\", \"[S2] Every feature shares one Task type and one storage interface\"]\nowns: [\"none\"]\nmust_not:\n- Contain code or open a PR\n- Close until every child task's review verdict is pass and the Acceptance below is checked on main\ninputs:\n- Parent epic E3\n- docs/backlog/BACKLOG.md\nhandoff_to: architect\ndone_when:\n- T3.2 and T3.4 have verdict pass\n- Acceptance checked on main after lanes list and data merge\nretry: if review returns changes, create one fix task for persona build, max 3, then persona plan\n\n## Acceptance\n- [ ] Typing only a title and pressing Enter adds the task at the top of the list with priority none and no due date\n- [ ] With all fields filled, the new row shows the notes, priority, and due date as entered\n- [ ] An empty or spaces-only title adds nothing and shows the required-title error next to Title\n- [ ] After adding, the form is empty and focus is back in Title\n\n## Astryx\nnone"
+    },
+    {
+      "key": "T3.1",
+      "title": "[T3.1] Architect: capture contract",
+      "labels": [
+        "type:task",
+        "persona:architect",
+        "wave:1",
+        "area:tasks",
+        "priority:p0"
+      ],
+      "parent": "S3",
+      "body": "## Outcome\ndocs/contracts/capture.md fixes the composer: field order and labels, defaults (priority none, no due date), submit triggers (Add task button, Enter in Title), trimming, the required-title message and how it is tied to the field, reset and focus after submit, the Astryx components with printed specifiers and props, and the test list for T3.3.\n\n## Agent intent\npersona: architect\nwave: 1\nparallel_group: capture\ndepends_on: [\"[T1.8] Review: app frame with header and main region\", \"[T2.4] Review: compose TaskScreen from contract stubs\"]\nowns: [\"docs/contracts/capture.md\"]\nmust_not:\n- Implement feature behavior; stubs (if any) only return null, a copy of their input, or inert values\n- Edit any path not in owns\n- Name an Astryx component, import specifier, or prop the CLI did not print\n- Change src/tasks/types.ts or src/tasks/storage.ts; a contract gap gets label `blocked` and goes to plan\ninputs:\n- docs/contracts/tasks.md (from T2.1)\n- Parent story S3\n- `npx @astryxdesign/cli component <Name>` for each component under Astryx\n- `npx @astryxdesign/cli search <term> --type component` if a catalog name does not resolve\nhandoff_to: review\ndone_when:\n- docs/contracts/capture.md has one section per build task in this lane: components (specifier + exact props), behavior rules, UI copy, named test list\n- Due date uses the Astryx DateInput and is stored as YYYY-MM-DD or null\n- One branch, one PR; body says `Closes #<this issue>` and pastes the CLI output it relied on\nretry: if review returns changes, create one fix task for persona build, max 3, then persona plan\n\n## Acceptance\n- [ ] A build agent can implement each task in this lane from tasks.md plus this doc without asking a question (reviewer reads it cold)\n- [ ] Every string the user sees in this lane is written out in the doc\n\n## Astryx\nComponents to confirm with `npx @astryxdesign/cli component <Name>` before use:\n- FormLayout\n- Field\n- TextInput\n- TextArea\n- Selector\n- DateInput\n- Button"
+    },
+    {
+      "key": "T3.2",
+      "title": "[T3.2] Review: capture contract",
+      "labels": [
+        "type:task",
+        "persona:review",
+        "wave:1",
+        "area:tasks",
+        "priority:p0"
+      ],
+      "parent": "S3",
+      "body": "## Outcome\nA pass or changes verdict exists on the PR for [T3.1] Architect: capture contract, based on its done_when, its Acceptance, and Astryx usage checked against CLI output. On pass the orchestrator merges the PR; on changes one fix task exists.\n\n## Agent intent\npersona: review\nwave: 1\nparallel_group: capture\ndepends_on: [\"[T3.1] Architect: capture contract\"]\nowns: [\"none\"]\nmust_not:\n- Push commits to, or edit files in, the PR under review\n- Pass with any failing check or unmet item\n- Widen scope: findings outside the target's owns become a comment for plan, not a blocker\ninputs:\n- The PR that closes [T3.1] Architect: capture contract\n- Issue [T3.1] Architect: capture contract\n- Every doc listed in T3.1's inputs\n- `npx @astryxdesign/cli component <Name>` for each Astryx component the PR imports or names\nhandoff_to: done\ndone_when:\n- Verdict comment posted as `verdict: pass` or `verdict: changes` with the failing items listed\n- On pass: PR approved; orchestrator merges it and closes T3.1\n- On changes: one fix task opened per the retry rule and linked here; this review re-runs on the updated PR\nretry: if review returns changes, create one fix task for persona build, max 3, then persona plan\n\n## Acceptance\n- [ ] Verdict comment on the PR marks every done_when and Acceptance item of [T3.1] Architect: capture contract as met or not met, with evidence (command output or screenshot)\n- [ ] The diff touches only paths in T3.1's owns\n- [ ] Every component named in the contract was confirmed with the CLI; recorded specifiers and props match its output\n- [ ] Stubs (if any) contain no feature behavior and the contract matches docs/backlog/BACKLOG.md section 4\n\n## Astryx\nComponents to confirm with `npx @astryxdesign/cli component <Name>` before use:\n- FormLayout\n- Field\n- TextInput\n- TextArea\n- Selector\n- DateInput\n- Button"
+    },
+    {
+      "key": "T3.3",
+      "title": "[T3.3] Build: TaskComposer form with title validation",
+      "labels": [
+        "type:task",
+        "persona:build",
+        "wave:1",
+        "area:tasks",
+        "priority:p0"
+      ],
+      "parent": "S3",
+      "body": "## Outcome\nTaskComposer renders a labeled form (Title, Notes, Priority, Due date) and calls onAdd once with a trimmed TaskDraft when Title has text. An empty or whitespace-only title never calls onAdd and shows the contract's error on the Title field.\n\n## Agent intent\npersona: build\nwave: 1\nparallel_group: capture\ndepends_on: [\"[T3.2] Review: capture contract\"]\nowns: [\"src/tasks/TaskComposer.tsx\", \"src/tasks/TaskComposer.test.tsx\"]\nmust_not:\n- Edit, create, or delete any path not in owns. Need one? Add label `blocked`, comment why, hand to plan.\n- Use an Astryx component, import path, or prop that `npx @astryxdesign/cli component <Name>` does not print; hard-code colors, spacing, radii, shadows, or fonts.\n- Add, remove, or upgrade dependencies (package.json belongs to T1.3).\n- Change src/tasks/types.ts or src/tasks/storage.ts, or add barrel/index files.\n- Generate ids or timestamps (the store does)\n- Persist anything\ninputs:\n- This issue and its parent story\n- docs/contracts/tasks.md (from T2.1)\n- docs/contracts/capture.md\n- `npx @astryxdesign/cli component <Name>` for every component under Astryx; import only from the entry it prints\nhandoff_to: review\ndone_when:\n- One branch, one PR; body says `Closes #<this issue>`; the diff touches only owns\n- TaskComposer.test.tsx passes: rejects empty title; rejects whitespace-only title; submits trimmed title with defaults (notes '', priority 'none', dueDate null); submits all four fields; Enter in Title submits\n- Test: after a successful add, fields reset and focus returns to Title (id COMPOSER_TITLE_ID)\n- Test: the error clears once Title has text; every control has an accessible name\n- `npm run typecheck`, `npm run lint`, `npm test`, and `npm run build` exit 0 on the PR branch\nretry: if review returns changes, create one fix task for persona build, max 3, then persona plan\n\n## Acceptance\n- [ ] `npm test -- TaskComposer` passes every test named in capture.md\n- [ ] In `npm run dev`, pressing Add task with an empty Title shows the required-title error under the field\n- [ ] Each field has a visible label; Tab order is Title, Notes, Priority, Due date, Add task\n\n## Astryx\nComponents to confirm with `npx @astryxdesign/cli component <Name>` before use:\n- FormLayout\n- Field\n- TextInput\n- TextArea\n- Selector\n- DateInput\n- Button"
+    },
+    {
+      "key": "T3.4",
+      "title": "[T3.4] Review: TaskComposer form with title validation",
+      "labels": [
+        "type:task",
+        "persona:review",
+        "wave:1",
+        "area:tasks",
+        "priority:p0"
+      ],
+      "parent": "S3",
+      "body": "## Outcome\nA pass or changes verdict exists on the PR for [T3.3] Build: TaskComposer form with title validation, based on its done_when, its Acceptance, and Astryx usage checked against CLI output. On pass the orchestrator merges the PR; on changes one fix task exists.\n\n## Agent intent\npersona: review\nwave: 1\nparallel_group: capture\ndepends_on: [\"[T3.3] Build: TaskComposer form with title validation\"]\nowns: [\"none\"]\nmust_not:\n- Push commits to, or edit files in, the PR under review\n- Pass with any failing check or unmet item\n- Widen scope: findings outside the target's owns become a comment for plan, not a blocker\ninputs:\n- The PR that closes [T3.3] Build: TaskComposer form with title validation\n- Issue [T3.3] Build: TaskComposer form with title validation\n- Every doc listed in T3.3's inputs\n- `npx @astryxdesign/cli component <Name>` for each Astryx component the PR imports or names\nhandoff_to: done\ndone_when:\n- Verdict comment posted as `verdict: pass` or `verdict: changes` with the failing items listed\n- On pass: PR approved; orchestrator merges it and closes T3.3\n- On changes: one fix task opened per the retry rule and linked here; this review re-runs on the updated PR\nretry: if review returns changes, create one fix task for persona build, max 3, then persona plan\n\n## Acceptance\n- [ ] Verdict comment on the PR marks every done_when and Acceptance item of [T3.3] Build: TaskComposer form with title validation as met or not met, with evidence (command output or screenshot)\n- [ ] The diff touches only paths in T3.3's owns\n- [ ] Every Astryx import in the diff matches the entry printed by `npx @astryxdesign/cli component <Name>`, and every prop used appears in that output\n- [ ] No hard-coded colors, spacing, radii, shadows, or fonts\n- [ ] `npm run typecheck`, `npm run lint`, `npm test`, and `npm run build` exit 0 when the reviewer runs them on the PR branch\n\n## Astryx\nComponents to confirm with `npx @astryxdesign/cli component <Name>` before use:\n- FormLayout\n- Field\n- TextInput\n- TextArea\n- Selector\n- DateInput\n- Button"
+    },
+    {
+      "key": "E4",
+      "title": "[E4] View and complete tasks",
+      "labels": [
+        "type:epic",
+        "persona:plan",
+        "wave:1",
+        "area:tasks",
+        "priority:p0"
+      ],
+      "parent": null,
+      "body": "## Outcome\nA user sees all tasks in one list, incomplete first and newest first within each group, and can mark any task complete or incomplete.\n\n## Agent intent\npersona: plan\nwave: 1\nparallel_group: list\ndepends_on: [\"[E1] App shell and design system\", \"[E2] Task contract\"]\nowns: [\"none\"]\nmust_not:\n- Contain code or open a PR\n- Close before every child story is closed\ninputs:\n- docs/backlog/BACKLOG.md\n- https://astryx.atmeta.com/\nhandoff_to: done\ndone_when:\n- S4 is closed\nretry: if review returns changes, create one fix task for persona build, max 3, then persona plan\n\n## Acceptance\n- [ ] S4 Acceptance checked on main\n\n## Astryx\nnone"
+    },
+    {
+      "key": "S4",
+      "title": "[S4] User sees incomplete tasks first and can toggle complete",
+      "labels": [
+        "type:story",
+        "persona:plan",
+        "wave:1",
+        "area:tasks",
+        "priority:p0"
+      ],
+      "parent": "E4",
+      "body": "## Outcome\nThe list orders tasks predictably and each row toggles completion from mouse or keyboard. Row and list container are separate files with separate owners.\n\n## Agent intent\npersona: plan\nwave: 1\nparallel_group: list\ndepends_on: [\"[S1] Running app renders an Astryx-themed frame with a header and a main region\", \"[S2] Every feature shares one Task type and one storage interface\"]\nowns: [\"none\"]\nmust_not:\n- Contain code or open a PR\n- Close until every child task's review verdict is pass and the Acceptance below is checked on main\ninputs:\n- Parent epic E4\n- docs/backlog/BACKLOG.md\nhandoff_to: architect\ndone_when:\n- T4.2, T4.4, T4.6 have verdict pass\n- Acceptance checked on main after lanes capture and data merge\nretry: if review returns changes, create one fix task for persona build, max 3, then persona plan\n\n## Acceptance\n- [ ] Incomplete tasks appear above completed ones; within each group the newest is first\n- [ ] Checking a task moves it into the completed group; unchecking moves it back\n- [ ] Each checkbox is reachable with Tab and toggles with Space\n- [ ] Rows show title, notes when present, a priority badge unless priority is none, and the due date when set\n\n## Astryx\nnone"
+    },
+    {
+      "key": "T4.1",
+      "title": "[T4.1] Architect: list and row contract",
+      "labels": [
+        "type:task",
+        "persona:architect",
+        "wave:1",
+        "area:tasks",
+        "priority:p0"
+      ],
+      "parent": "S4",
+      "body": "## Outcome\ndocs/contracts/list.md fixes the row and list: row layout and copy (checkbox named by the title; Edit and Delete names include the title), completed styling using only Astryx props, priority-to-Badge mapping, due-date formatting from YYYY-MM-DD parts as a local date, list semantics (list and listitem roles, list named 'Tasks'), the sort rule, and test lists for T4.3 and T4.5.\n\n## Agent intent\npersona: architect\nwave: 1\nparallel_group: list\ndepends_on: [\"[T1.8] Review: app frame with header and main region\", \"[T2.4] Review: compose TaskScreen from contract stubs\"]\nowns: [\"docs/contracts/list.md\"]\nmust_not:\n- Implement feature behavior; stubs (if any) only return null, a copy of their input, or inert values\n- Edit any path not in owns\n- Name an Astryx component, import specifier, or prop the CLI did not print\n- Change src/tasks/types.ts or src/tasks/storage.ts; a contract gap gets label `blocked` and goes to plan\ninputs:\n- docs/contracts/tasks.md (from T2.1)\n- Parent story S4\n- `npx @astryxdesign/cli component <Name>` for each component under Astryx\n- `npx @astryxdesign/cli search <term> --type component` if a catalog name does not resolve\nhandoff_to: review\ndone_when:\n- docs/contracts/list.md has one section per build task in this lane: components (specifier + exact props), behavior rules, UI copy, named test list\n- States that dates are never parsed with `new Date('YYYY-MM-DD')` (that is UTC and shifts the day)\n- One branch, one PR; body says `Closes #<this issue>` and pastes the CLI output it relied on\nretry: if review returns changes, create one fix task for persona build, max 3, then persona plan\n\n## Acceptance\n- [ ] A build agent can implement each task in this lane from tasks.md plus this doc without asking a question (reviewer reads it cold)\n- [ ] Every string the user sees in this lane is written out in the doc\n\n## Astryx\nComponents to confirm with `npx @astryxdesign/cli component <Name>` before use:\n- CheckboxInput\n- Text\n- Badge\n- Button\n- IconButton\n- Stack\n- List"
+    },
+    {
+      "key": "T4.2",
+      "title": "[T4.2] Review: list and row contract",
+      "labels": [
+        "type:task",
+        "persona:review",
+        "wave:1",
+        "area:tasks",
+        "priority:p0"
+      ],
+      "parent": "S4",
+      "body": "## Outcome\nA pass or changes verdict exists on the PR for [T4.1] Architect: list and row contract, based on its done_when, its Acceptance, and Astryx usage checked against CLI output. On pass the orchestrator merges the PR; on changes one fix task exists.\n\n## Agent intent\npersona: review\nwave: 1\nparallel_group: list\ndepends_on: [\"[T4.1] Architect: list and row contract\"]\nowns: [\"none\"]\nmust_not:\n- Push commits to, or edit files in, the PR under review\n- Pass with any failing check or unmet item\n- Widen scope: findings outside the target's owns become a comment for plan, not a blocker\ninputs:\n- The PR that closes [T4.1] Architect: list and row contract\n- Issue [T4.1] Architect: list and row contract\n- Every doc listed in T4.1's inputs\n- `npx @astryxdesign/cli component <Name>` for each Astryx component the PR imports or names\nhandoff_to: done\ndone_when:\n- Verdict comment posted as `verdict: pass` or `verdict: changes` with the failing items listed\n- On pass: PR approved; orchestrator merges it and closes T4.1\n- On changes: one fix task opened per the retry rule and linked here; this review re-runs on the updated PR\nretry: if review returns changes, create one fix task for persona build, max 3, then persona plan\n\n## Acceptance\n- [ ] Verdict comment on the PR marks every done_when and Acceptance item of [T4.1] Architect: list and row contract as met or not met, with evidence (command output or screenshot)\n- [ ] The diff touches only paths in T4.1's owns\n- [ ] Every component named in the contract was confirmed with the CLI; recorded specifiers and props match its output\n- [ ] Stubs (if any) contain no feature behavior and the contract matches docs/backlog/BACKLOG.md section 4\n\n## Astryx\nComponents to confirm with `npx @astryxdesign/cli component <Name>` before use:\n- CheckboxInput\n- Text\n- Badge\n- Button\n- IconButton\n- Stack\n- List"
+    },
+    {
+      "key": "T4.3",
+      "title": "[T4.3] Build: TaskRow",
+      "labels": [
+        "type:task",
+        "persona:build",
+        "wave:1",
+        "area:tasks",
+        "priority:p0"
+      ],
+      "parent": "S4",
+      "body": "## Outcome\nTaskRow shows one task: a checkbox named by the title that reflects completed, the title, notes when present, a priority badge unless priority is none, the due date when set, and Edit and Delete buttons whose accessible names include the title. It only reports intent through onToggle, onEdit, and onDelete.\n\n## Agent intent\npersona: build\nwave: 1\nparallel_group: list\ndepends_on: [\"[T4.2] Review: list and row contract\"]\nowns: [\"src/tasks/TaskRow.tsx\", \"src/tasks/TaskRow.test.tsx\"]\nmust_not:\n- Edit, create, or delete any path not in owns. Need one? Add label `blocked`, comment why, hand to plan.\n- Use an Astryx component, import path, or prop that `npx @astryxdesign/cli component <Name>` does not print; hard-code colors, spacing, radii, shadows, or fonts.\n- Add, remove, or upgrade dependencies (package.json belongs to T1.3).\n- Change src/tasks/types.ts or src/tasks/storage.ts, or add barrel/index files.\n- Open dialogs or change data itself\ninputs:\n- This issue and its parent story\n- docs/contracts/tasks.md (from T2.1)\n- docs/contracts/list.md\n- `npx @astryxdesign/cli component <Name>` for every component under Astryx; import only from the entry it prints\nhandoff_to: review\ndone_when:\n- One branch, one PR; body says `Closes #<this issue>`; the diff touches only owns\n- TaskRow.test.tsx passes: checkbox checked state follows completed; click and Space call onToggle(id); Edit calls onEdit(task); Delete calls onDelete(task)\n- Test: no badge for priority none; notes hidden when empty\n- Test: with process.env.TZ = 'America/Los_Angeles', dueDate '2026-03-01' renders as March 1\n- `npm run typecheck`, `npm run lint`, `npm test`, and `npm run build` exit 0 on the PR branch\nretry: if review returns changes, create one fix task for persona build, max 3, then persona plan\n\n## Acceptance\n- [ ] `npm test -- TaskRow` passes every test named in list.md\n- [ ] On main after lanes capture and data merge, a completed row looks visibly different from an incomplete one\n\n## Astryx\nComponents to confirm with `npx @astryxdesign/cli component <Name>` before use:\n- CheckboxInput\n- Text\n- Badge\n- Button\n- IconButton\n- Stack"
+    },
+    {
+      "key": "T4.4",
+      "title": "[T4.4] Review: TaskRow",
+      "labels": [
+        "type:task",
+        "persona:review",
+        "wave:1",
+        "area:tasks",
+        "priority:p0"
+      ],
+      "parent": "S4",
+      "body": "## Outcome\nA pass or changes verdict exists on the PR for [T4.3] Build: TaskRow, based on its done_when, its Acceptance, and Astryx usage checked against CLI output. On pass the orchestrator merges the PR; on changes one fix task exists.\n\n## Agent intent\npersona: review\nwave: 1\nparallel_group: list\ndepends_on: [\"[T4.3] Build: TaskRow\"]\nowns: [\"none\"]\nmust_not:\n- Push commits to, or edit files in, the PR under review\n- Pass with any failing check or unmet item\n- Widen scope: findings outside the target's owns become a comment for plan, not a blocker\ninputs:\n- The PR that closes [T4.3] Build: TaskRow\n- Issue [T4.3] Build: TaskRow\n- Every doc listed in T4.3's inputs\n- `npx @astryxdesign/cli component <Name>` for each Astryx component the PR imports or names\nhandoff_to: done\ndone_when:\n- Verdict comment posted as `verdict: pass` or `verdict: changes` with the failing items listed\n- On pass: PR approved; orchestrator merges it and closes T4.3\n- On changes: one fix task opened per the retry rule and linked here; this review re-runs on the updated PR\nretry: if review returns changes, create one fix task for persona build, max 3, then persona plan\n\n## Acceptance\n- [ ] Verdict comment on the PR marks every done_when and Acceptance item of [T4.3] Build: TaskRow as met or not met, with evidence (command output or screenshot)\n- [ ] The diff touches only paths in T4.3's owns\n- [ ] Every Astryx import in the diff matches the entry printed by `npx @astryxdesign/cli component <Name>`, and every prop used appears in that output\n- [ ] No hard-coded colors, spacing, radii, shadows, or fonts\n- [ ] `npm run typecheck`, `npm run lint`, `npm test`, and `npm run build` exit 0 when the reviewer runs them on the PR branch\n\n## Astryx\nComponents to confirm with `npx @astryxdesign/cli component <Name>` before use:\n- CheckboxInput\n- Text\n- Badge\n- Button\n- IconButton\n- Stack"
+    },
+    {
+      "key": "T4.5",
+      "title": "[T4.5] Build: TaskList container and sort order",
+      "labels": [
+        "type:task",
+        "persona:build",
+        "wave:1",
+        "area:tasks",
+        "priority:p0"
+      ],
+      "parent": "S4",
+      "body": "## Outcome\nTaskList renders the tasks it gets as a list named 'Tasks' of TaskRow items in sortTasks order: incomplete newest first, then completed newest first, by createdAt. sortTasks is pure and never mutates its input.\n\n## Agent intent\npersona: build\nwave: 1\nparallel_group: list\ndepends_on: [\"[T4.2] Review: list and row contract\"]\nowns: [\"src/tasks/TaskList.tsx\", \"src/tasks/TaskList.test.tsx\", \"src/tasks/sortTasks.ts\", \"src/tasks/sortTasks.test.ts\"]\nmust_not:\n- Edit, create, or delete any path not in owns. Need one? Add label `blocked`, comment why, hand to plan.\n- Use an Astryx component, import path, or prop that `npx @astryxdesign/cli component <Name>` does not print; hard-code colors, spacing, radii, shadows, or fonts.\n- Add, remove, or upgrade dependencies (package.json belongs to T1.3).\n- Change src/tasks/types.ts or src/tasks/storage.ts, or add barrel/index files.\n- Filter tasks (T6.3 owns filtering)\n- Depend on T4.3's implementation: tests mock ./TaskRow with vi.mock\ninputs:\n- This issue and its parent story\n- docs/contracts/tasks.md (from T2.1)\n- docs/contracts/list.md\n- `npx @astryxdesign/cli component <Name>` for every component under Astryx; import only from the entry it prints\nhandoff_to: review\ndone_when:\n- One branch, one PR; body says `Closes #<this issue>`; the diff touches only owns\n- sortTasks.test.ts passes: incomplete before completed; newest first in each group; equal createdAt keeps input order; input array unchanged\n- TaskList.test.tsx passes: one listitem per task in sorted order; onToggle, onEdit, onDelete forwarded to each row; list accessible name 'Tasks'\n- `npm run typecheck`, `npm run lint`, `npm test`, and `npm run build` exit 0 on the PR branch\nretry: if review returns changes, create one fix task for persona build, max 3, then persona plan\n\n## Acceptance\n- [ ] `npm test -- sortTasks TaskList` passes\n- [ ] On main after lanes capture and data merge, completing a task moves it below every incomplete task\n\n## Astryx\nComponents to confirm with `npx @astryxdesign/cli component <Name>` before use:\n- List\n- Stack"
+    },
+    {
+      "key": "T4.6",
+      "title": "[T4.6] Review: TaskList container and sort order",
+      "labels": [
+        "type:task",
+        "persona:review",
+        "wave:1",
+        "area:tasks",
+        "priority:p0"
+      ],
+      "parent": "S4",
+      "body": "## Outcome\nA pass or changes verdict exists on the PR for [T4.5] Build: TaskList container and sort order, based on its done_when, its Acceptance, and Astryx usage checked against CLI output. On pass the orchestrator merges the PR; on changes one fix task exists.\n\n## Agent intent\npersona: review\nwave: 1\nparallel_group: list\ndepends_on: [\"[T4.5] Build: TaskList container and sort order\"]\nowns: [\"none\"]\nmust_not:\n- Push commits to, or edit files in, the PR under review\n- Pass with any failing check or unmet item\n- Widen scope: findings outside the target's owns become a comment for plan, not a blocker\ninputs:\n- The PR that closes [T4.5] Build: TaskList container and sort order\n- Issue [T4.5] Build: TaskList container and sort order\n- Every doc listed in T4.5's inputs\n- `npx @astryxdesign/cli component <Name>` for each Astryx component the PR imports or names\nhandoff_to: done\ndone_when:\n- Verdict comment posted as `verdict: pass` or `verdict: changes` with the failing items listed\n- On pass: PR approved; orchestrator merges it and closes T4.5\n- On changes: one fix task opened per the retry rule and linked here; this review re-runs on the updated PR\nretry: if review returns changes, create one fix task for persona build, max 3, then persona plan\n\n## Acceptance\n- [ ] Verdict comment on the PR marks every done_when and Acceptance item of [T4.5] Build: TaskList container and sort order as met or not met, with evidence (command output or screenshot)\n- [ ] The diff touches only paths in T4.5's owns\n- [ ] Every Astryx import in the diff matches the entry printed by `npx @astryxdesign/cli component <Name>`, and every prop used appears in that output\n- [ ] No hard-coded colors, spacing, radii, shadows, or fonts\n- [ ] `npm run typecheck`, `npm run lint`, `npm test`, and `npm run build` exit 0 when the reviewer runs them on the PR branch\n\n## Astryx\nComponents to confirm with `npx @astryxdesign/cli component <Name>` before use:\n- List\n- Stack"
+    },
+    {
+      "key": "E5",
+      "title": "[E5] Edit and delete",
+      "labels": [
+        "type:epic",
+        "persona:plan",
+        "wave:1",
+        "area:tasks",
+        "priority:p1"
+      ],
+      "parent": null,
+      "body": "## Outcome\nA user can change a task's title, notes, priority, and due date in a dialog, and delete a task only after confirming.\n\n## Agent intent\npersona: plan\nwave: 1\nparallel_group: mutate\ndepends_on: [\"[E1] App shell and design system\", \"[E2] Task contract\"]\nowns: [\"none\"]\nmust_not:\n- Contain code or open a PR\n- Close before every child story is closed\ninputs:\n- docs/backlog/BACKLOG.md\n- https://astryx.atmeta.com/\nhandoff_to: done\ndone_when:\n- S5 is closed\nretry: if review returns changes, create one fix task for persona build, max 3, then persona plan\n\n## Acceptance\n- [ ] S5 Acceptance checked on main\n\n## Astryx\nnone"
+    },
+    {
+      "key": "S5",
+      "title": "[S5] User edits fields and deletes with confirmation",
+      "labels": [
+        "type:story",
+        "persona:plan",
+        "wave:1",
+        "area:tasks",
+        "priority:p1"
+      ],
+      "parent": "E5",
+      "body": "## Outcome\nEdit and delete live in two dialog files of their own. The row already raises onEdit and onDelete per the contract, so this lane never touches the row and starts from the contract alone.\n\n## Agent intent\npersona: plan\nwave: 1\nparallel_group: mutate\ndepends_on: [\"[S1] Running app renders an Astryx-themed frame with a header and a main region\", \"[S2] Every feature shares one Task type and one storage interface\"]\nowns: [\"none\"]\nmust_not:\n- Contain code or open a PR\n- Close until every child task's review verdict is pass and the Acceptance below is checked on main\ninputs:\n- Parent epic E5\n- docs/backlog/BACKLOG.md\nhandoff_to: architect\ndone_when:\n- T5.2, T5.4, T5.6 have verdict pass\n- Acceptance checked on main after lanes capture, list and data merge\nretry: if review returns changes, create one fix task for persona build, max 3, then persona plan\n\n## Acceptance\n- [ ] Edit opens a dialog prefilled with the task; Save updates the row; Cancel or Escape changes nothing\n- [ ] Saving with an empty title is blocked with the required-title error\n- [ ] Delete opens a dialog naming the task; Cancel keeps it; Delete removes it\n- [ ] Closing the edit dialog returns focus to the row's Edit button; after a delete, focus is in the composer's Title\n\n## Astryx\nnone"
+    },
+    {
+      "key": "T5.1",
+      "title": "[T5.1] Architect: edit and delete dialogs contract",
+      "labels": [
+        "type:task",
+        "persona:architect",
+        "wave:1",
+        "area:tasks",
+        "priority:p1"
+      ],
+      "parent": "S5",
+      "body": "## Outcome\ndocs/contracts/mutate.md fixes both dialogs: titles, field labels (same copy as the composer), button copy, validation, initial focus (first field for edit; Cancel for delete), Escape behavior, focus return on close, the Astryx components with printed specifiers and props, and test lists for T5.3 and T5.5.\n\n## Agent intent\npersona: architect\nwave: 1\nparallel_group: mutate\ndepends_on: [\"[T1.8] Review: app frame with header and main region\", \"[T2.4] Review: compose TaskScreen from contract stubs\"]\nowns: [\"docs/contracts/mutate.md\"]\nmust_not:\n- Implement feature behavior; stubs (if any) only return null, a copy of their input, or inert values\n- Edit any path not in owns\n- Name an Astryx component, import specifier, or prop the CLI did not print\n- Change src/tasks/types.ts or src/tasks/storage.ts; a contract gap gets label `blocked` and goes to plan\ninputs:\n- docs/contracts/tasks.md (from T2.1)\n- Parent story S5\n- `npx @astryxdesign/cli component <Name>` for each component under Astryx\n- `npx @astryxdesign/cli search <term> --type component` if a catalog name does not resolve\nhandoff_to: review\ndone_when:\n- docs/contracts/mutate.md has one section per build task in this lane: components (specifier + exact props), behavior rules, UI copy, named test list\n- Says whether Astryx Dialog restores focus on close (from CLI docs); if not, the dialog restores focus itself, except after delete confirm, where TaskScreen moves focus to Title\n- One branch, one PR; body says `Closes #<this issue>` and pastes the CLI output it relied on\nretry: if review returns changes, create one fix task for persona build, max 3, then persona plan\n\n## Acceptance\n- [ ] A build agent can implement each task in this lane from tasks.md plus this doc without asking a question (reviewer reads it cold)\n- [ ] Every string the user sees in this lane is written out in the doc\n\n## Astryx\nComponents to confirm with `npx @astryxdesign/cli component <Name>` before use:\n- Dialog\n- FormLayout\n- Field\n- TextInput\n- TextArea\n- Selector\n- DateInput\n- Button\n- AlertDialog"
+    },
+    {
+      "key": "T5.2",
+      "title": "[T5.2] Review: edit and delete dialogs contract",
+      "labels": [
+        "type:task",
+        "persona:review",
+        "wave:1",
+        "area:tasks",
+        "priority:p1"
+      ],
+      "parent": "S5",
+      "body": "## Outcome\nA pass or changes verdict exists on the PR for [T5.1] Architect: edit and delete dialogs contract, based on its done_when, its Acceptance, and Astryx usage checked against CLI output. On pass the orchestrator merges the PR; on changes one fix task exists.\n\n## Agent intent\npersona: review\nwave: 1\nparallel_group: mutate\ndepends_on: [\"[T5.1] Architect: edit and delete dialogs contract\"]\nowns: [\"none\"]\nmust_not:\n- Push commits to, or edit files in, the PR under review\n- Pass with any failing check or unmet item\n- Widen scope: findings outside the target's owns become a comment for plan, not a blocker\ninputs:\n- The PR that closes [T5.1] Architect: edit and delete dialogs contract\n- Issue [T5.1] Architect: edit and delete dialogs contract\n- Every doc listed in T5.1's inputs\n- `npx @astryxdesign/cli component <Name>` for each Astryx component the PR imports or names\nhandoff_to: done\ndone_when:\n- Verdict comment posted as `verdict: pass` or `verdict: changes` with the failing items listed\n- On pass: PR approved; orchestrator merges it and closes T5.1\n- On changes: one fix task opened per the retry rule and linked here; this review re-runs on the updated PR\nretry: if review returns changes, create one fix task for persona build, max 3, then persona plan\n\n## Acceptance\n- [ ] Verdict comment on the PR marks every done_when and Acceptance item of [T5.1] Architect: edit and delete dialogs contract as met or not met, with evidence (command output or screenshot)\n- [ ] The diff touches only paths in T5.1's owns\n- [ ] Every component named in the contract was confirmed with the CLI; recorded specifiers and props match its output\n- [ ] Stubs (if any) contain no feature behavior and the contract matches docs/backlog/BACKLOG.md section 4\n\n## Astryx\nComponents to confirm with `npx @astryxdesign/cli component <Name>` before use:\n- Dialog\n- FormLayout\n- Field\n- TextInput\n- TextArea\n- Selector\n- DateInput\n- Button\n- AlertDialog"
+    },
+    {
+      "key": "T5.3",
+      "title": "[T5.3] Build: EditTaskDialog",
+      "labels": [
+        "type:task",
+        "persona:build",
+        "wave:1",
+        "area:tasks",
+        "priority:p1"
+      ],
+      "parent": "S5",
+      "body": "## Outcome\nWhen task is non-null, a dialog named 'Edit task' opens with Title, Notes, Priority, and Due date prefilled. Save calls onSave(id, patch) with trimmed values, then onClose. An empty title blocks Save with the contract error. Cancel or Escape calls only onClose.\n\n## Agent intent\npersona: build\nwave: 1\nparallel_group: mutate\ndepends_on: [\"[T5.2] Review: edit and delete dialogs contract\"]\nowns: [\"src/tasks/EditTaskDialog.tsx\", \"src/tasks/EditTaskDialog.test.tsx\"]\nmust_not:\n- Edit, create, or delete any path not in owns. Need one? Add label `blocked`, comment why, hand to plan.\n- Use an Astryx component, import path, or prop that `npx @astryxdesign/cli component <Name>` does not print; hard-code colors, spacing, radii, shadows, or fonts.\n- Add, remove, or upgrade dependencies (package.json belongs to T1.3).\n- Change src/tasks/types.ts or src/tasks/storage.ts, or add barrel/index files.\n- Edit TaskRow or TaskScreen\n- Import from TaskComposer (separate lanes; the duplicated fields are accepted)\ninputs:\n- This issue and its parent story\n- docs/contracts/tasks.md (from T2.1)\n- docs/contracts/mutate.md\n- `npx @astryxdesign/cli component <Name>` for every component under Astryx; import only from the entry it prints\nhandoff_to: review\ndone_when:\n- One branch, one PR; body says `Closes #<this issue>`; the diff touches only owns\n- EditTaskDialog.test.tsx passes: not rendered when task is null; fields prefilled; empty title blocks save and shows the error\n- Test: Save calls onSave(id, { title, notes, priority, dueDate }) trimmed, then onClose\n- Test: Cancel and Escape each call onClose only; focus moves into the dialog on open\n- `npm run typecheck`, `npm run lint`, `npm test`, and `npm run build` exit 0 on the PR branch\nretry: if review returns changes, create one fix task for persona build, max 3, then persona plan\n\n## Acceptance\n- [ ] `npm test -- EditTaskDialog` passes every test named in mutate.md\n- [ ] On main after lane list merges: Escape closes the dialog without changes and focus returns to the Edit button\n\n## Astryx\nComponents to confirm with `npx @astryxdesign/cli component <Name>` before use:\n- Dialog\n- FormLayout\n- Field\n- TextInput\n- TextArea\n- Selector\n- DateInput\n- Button"
+    },
+    {
+      "key": "T5.4",
+      "title": "[T5.4] Review: EditTaskDialog",
+      "labels": [
+        "type:task",
+        "persona:review",
+        "wave:1",
+        "area:tasks",
+        "priority:p1"
+      ],
+      "parent": "S5",
+      "body": "## Outcome\nA pass or changes verdict exists on the PR for [T5.3] Build: EditTaskDialog, based on its done_when, its Acceptance, and Astryx usage checked against CLI output. On pass the orchestrator merges the PR; on changes one fix task exists.\n\n## Agent intent\npersona: review\nwave: 1\nparallel_group: mutate\ndepends_on: [\"[T5.3] Build: EditTaskDialog\"]\nowns: [\"none\"]\nmust_not:\n- Push commits to, or edit files in, the PR under review\n- Pass with any failing check or unmet item\n- Widen scope: findings outside the target's owns become a comment for plan, not a blocker\ninputs:\n- The PR that closes [T5.3] Build: EditTaskDialog\n- Issue [T5.3] Build: EditTaskDialog\n- Every doc listed in T5.3's inputs\n- `npx @astryxdesign/cli component <Name>` for each Astryx component the PR imports or names\nhandoff_to: done\ndone_when:\n- Verdict comment posted as `verdict: pass` or `verdict: changes` with the failing items listed\n- On pass: PR approved; orchestrator merges it and closes T5.3\n- On changes: one fix task opened per the retry rule and linked here; this review re-runs on the updated PR\nretry: if review returns changes, create one fix task for persona build, max 3, then persona plan\n\n## Acceptance\n- [ ] Verdict comment on the PR marks every done_when and Acceptance item of [T5.3] Build: EditTaskDialog as met or not met, with evidence (command output or screenshot)\n- [ ] The diff touches only paths in T5.3's owns\n- [ ] Every Astryx import in the diff matches the entry printed by `npx @astryxdesign/cli component <Name>`, and every prop used appears in that output\n- [ ] No hard-coded colors, spacing, radii, shadows, or fonts\n- [ ] `npm run typecheck`, `npm run lint`, `npm test`, and `npm run build` exit 0 when the reviewer runs them on the PR branch\n\n## Astryx\nComponents to confirm with `npx @astryxdesign/cli component <Name>` before use:\n- Dialog\n- FormLayout\n- Field\n- TextInput\n- TextArea\n- Selector\n- DateInput\n- Button"
+    },
+    {
+      "key": "T5.5",
+      "title": "[T5.5] Build: ConfirmDeleteDialog",
+      "labels": [
+        "type:task",
+        "persona:build",
+        "wave:1",
+        "area:tasks",
+        "priority:p1"
+      ],
+      "parent": "S5",
+      "body": "## Outcome\nWhen task is non-null, a confirm dialog names the task and offers Delete and Cancel. Delete calls onConfirm(id) once. Cancel or Escape calls only onClose. Initial focus is on Cancel.\n\n## Agent intent\npersona: build\nwave: 1\nparallel_group: mutate\ndepends_on: [\"[T5.2] Review: edit and delete dialogs contract\"]\nowns: [\"src/tasks/ConfirmDeleteDialog.tsx\", \"src/tasks/ConfirmDeleteDialog.test.tsx\"]\nmust_not:\n- Edit, create, or delete any path not in owns. Need one? Add label `blocked`, comment why, hand to plan.\n- Use an Astryx component, import path, or prop that `npx @astryxdesign/cli component <Name>` does not print; hard-code colors, spacing, radii, shadows, or fonts.\n- Add, remove, or upgrade dependencies (package.json belongs to T1.3).\n- Change src/tasks/types.ts or src/tasks/storage.ts, or add barrel/index files.\n- Restore focus after Delete (TaskScreen moves focus to Title)\n- Edit TaskRow or TaskScreen\ninputs:\n- This issue and its parent story\n- docs/contracts/tasks.md (from T2.1)\n- docs/contracts/mutate.md\n- `npx @astryxdesign/cli component <Name>` for every component under Astryx; import only from the entry it prints\nhandoff_to: review\ndone_when:\n- One branch, one PR; body says `Closes #<this issue>`; the diff touches only owns\n- ConfirmDeleteDialog.test.tsx passes: not rendered when task is null; shows the task title; Delete calls onConfirm(id) exactly once\n- Test: Cancel and Escape each call onClose only; initial focus is on Cancel\n- `npm run typecheck`, `npm run lint`, `npm test`, and `npm run build` exit 0 on the PR branch\nretry: if review returns changes, create one fix task for persona build, max 3, then persona plan\n\n## Acceptance\n- [ ] `npm test -- ConfirmDeleteDialog` passes every test named in mutate.md\n- [ ] On main after lane list merges: Cancel keeps the task; Delete removes it and focus lands in Title\n\n## Astryx\nComponents to confirm with `npx @astryxdesign/cli component <Name>` before use:\n- AlertDialog\n- Dialog\n- Text\n- Button"
+    },
+    {
+      "key": "T5.6",
+      "title": "[T5.6] Review: ConfirmDeleteDialog",
+      "labels": [
+        "type:task",
+        "persona:review",
+        "wave:1",
+        "area:tasks",
+        "priority:p1"
+      ],
+      "parent": "S5",
+      "body": "## Outcome\nA pass or changes verdict exists on the PR for [T5.5] Build: ConfirmDeleteDialog, based on its done_when, its Acceptance, and Astryx usage checked against CLI output. On pass the orchestrator merges the PR; on changes one fix task exists.\n\n## Agent intent\npersona: review\nwave: 1\nparallel_group: mutate\ndepends_on: [\"[T5.5] Build: ConfirmDeleteDialog\"]\nowns: [\"none\"]\nmust_not:\n- Push commits to, or edit files in, the PR under review\n- Pass with any failing check or unmet item\n- Widen scope: findings outside the target's owns become a comment for plan, not a blocker\ninputs:\n- The PR that closes [T5.5] Build: ConfirmDeleteDialog\n- Issue [T5.5] Build: ConfirmDeleteDialog\n- Every doc listed in T5.5's inputs\n- `npx @astryxdesign/cli component <Name>` for each Astryx component the PR imports or names\nhandoff_to: done\ndone_when:\n- Verdict comment posted as `verdict: pass` or `verdict: changes` with the failing items listed\n- On pass: PR approved; orchestrator merges it and closes T5.5\n- On changes: one fix task opened per the retry rule and linked here; this review re-runs on the updated PR\nretry: if review returns changes, create one fix task for persona build, max 3, then persona plan\n\n## Acceptance\n- [ ] Verdict comment on the PR marks every done_when and Acceptance item of [T5.5] Build: ConfirmDeleteDialog as met or not met, with evidence (command output or screenshot)\n- [ ] The diff touches only paths in T5.5's owns\n- [ ] Every Astryx import in the diff matches the entry printed by `npx @astryxdesign/cli component <Name>`, and every prop used appears in that output\n- [ ] No hard-coded colors, spacing, radii, shadows, or fonts\n- [ ] `npm run typecheck`, `npm run lint`, `npm test`, and `npm run build` exit 0 when the reviewer runs them on the PR branch\n\n## Astryx\nComponents to confirm with `npx @astryxdesign/cli component <Name>` before use:\n- AlertDialog\n- Dialog\n- Text\n- Button"
+    },
+    {
+      "key": "E6",
+      "title": "[E6] Filter, search, and clear completed",
+      "labels": [
+        "type:epic",
+        "persona:plan",
+        "wave:1",
+        "area:filters",
+        "priority:p1"
+      ],
+      "parent": null,
+      "body": "## Outcome\nA user narrows the list by status, priority, and title search, and removes all completed tasks at once without touching active ones.\n\n## Agent intent\npersona: plan\nwave: 1\nparallel_group: query\ndepends_on: [\"[E1] App shell and design system\", \"[E2] Task contract\"]\nowns: [\"none\"]\nmust_not:\n- Contain code or open a PR\n- Close before every child story is closed\ninputs:\n- docs/backlog/BACKLOG.md\n- https://astryx.atmeta.com/\nhandoff_to: done\ndone_when:\n- S6 is closed\nretry: if review returns changes, create one fix task for persona build, max 3, then persona plan\n\n## Acceptance\n- [ ] S6 Acceptance checked on main\n\n## Astryx\nnone"
+    },
+    {
+      "key": "S6",
+      "title": "[S6] User filters, searches, and clears completed tasks without losing active ones",
+      "labels": [
+        "type:story",
+        "persona:plan",
+        "wave:1",
+        "area:filters",
+        "priority:p1"
+      ],
+      "parent": "E6",
+      "body": "## Outcome\nFiltering is one pure function; the controls are two components; clearing calls the store's clearCompleted, which removes only completed tasks.\n\n## Agent intent\npersona: plan\nwave: 1\nparallel_group: query\ndepends_on: [\"[S1] Running app renders an Astryx-themed frame with a header and a main region\", \"[S2] Every feature shares one Task type and one storage interface\"]\nowns: [\"none\"]\nmust_not:\n- Contain code or open a PR\n- Close until every child task's review verdict is pass and the Acceptance below is checked on main\ninputs:\n- Parent epic E6\n- docs/backlog/BACKLOG.md\nhandoff_to: architect\ndone_when:\n- T6.2, T6.4, T6.6, T6.8 have verdict pass\n- Acceptance checked on main after every wave-1 lane merges\nretry: if review returns changes, create one fix task for persona build, max 3, then persona plan\n\n## Acceptance\n- [ ] Active shows only incomplete tasks, Completed only completed, All both\n- [ ] The priority filter combines with the status filter and search\n- [ ] Search matches title substrings, ignoring case; notes are not searched\n- [ ] 'Clear completed (n)' removes only completed tasks, keeps every active one, and is disabled when n is 0\n- [ ] When filters hide every task, a no-matches state with a Clear filters button appears\n\n## Astryx\nnone"
+    },
+    {
+      "key": "T6.1",
+      "title": "[T6.1] Architect: filter, search, and clear contract",
+      "labels": [
+        "type:task",
+        "persona:architect",
+        "wave:1",
+        "area:filters",
+        "priority:p1"
+      ],
+      "parent": "S6",
+      "body": "## Outcome\ndocs/contracts/query.md fixes the rules (status AND priority AND search; search is trimmed, case-insensitive, title only), control labels and options, the 'Clear completed (n)' copy and disabled rule, the decision of no confirm dialog for clear completed (the count is in the label), the Astryx components with printed specifiers and props, and test lists for T6.3, T6.5 and T6.7.\n\n## Agent intent\npersona: architect\nwave: 1\nparallel_group: query\ndepends_on: [\"[T1.8] Review: app frame with header and main region\", \"[T2.4] Review: compose TaskScreen from contract stubs\"]\nowns: [\"docs/contracts/query.md\"]\nmust_not:\n- Implement feature behavior; stubs (if any) only return null, a copy of their input, or inert values\n- Edit any path not in owns\n- Name an Astryx component, import specifier, or prop the CLI did not print\n- Change src/tasks/types.ts or src/tasks/storage.ts; a contract gap gets label `blocked` and goes to plan\ninputs:\n- docs/contracts/tasks.md (from T2.1)\n- Parent story S6\n- `npx @astryxdesign/cli component <Name>` for each component under Astryx\n- `npx @astryxdesign/cli search <term> --type component` if a catalog name does not resolve\nhandoff_to: review\ndone_when:\n- docs/contracts/query.md has one section per build task in this lane: components (specifier + exact props), behavior rules, UI copy, named test list\n- One branch, one PR; body says `Closes #<this issue>` and pastes the CLI output it relied on\nretry: if review returns changes, create one fix task for persona build, max 3, then persona plan\n\n## Acceptance\n- [ ] A build agent can implement each task in this lane from tasks.md plus this doc without asking a question (reviewer reads it cold)\n- [ ] Every string the user sees in this lane is written out in the doc\n\n## Astryx\nComponents to confirm with `npx @astryxdesign/cli component <Name>` before use:\n- SegmentedControl\n- Selector\n- Button\n- Toolbar\n- Stack\n- TextInput\n- Field"
+    },
+    {
+      "key": "T6.2",
+      "title": "[T6.2] Review: filter, search, and clear contract",
+      "labels": [
+        "type:task",
+        "persona:review",
+        "wave:1",
+        "area:filters",
+        "priority:p1"
+      ],
+      "parent": "S6",
+      "body": "## Outcome\nA pass or changes verdict exists on the PR for [T6.1] Architect: filter, search, and clear contract, based on its done_when, its Acceptance, and Astryx usage checked against CLI output. On pass the orchestrator merges the PR; on changes one fix task exists.\n\n## Agent intent\npersona: review\nwave: 1\nparallel_group: query\ndepends_on: [\"[T6.1] Architect: filter, search, and clear contract\"]\nowns: [\"none\"]\nmust_not:\n- Push commits to, or edit files in, the PR under review\n- Pass with any failing check or unmet item\n- Widen scope: findings outside the target's owns become a comment for plan, not a blocker\ninputs:\n- The PR that closes [T6.1] Architect: filter, search, and clear contract\n- Issue [T6.1] Architect: filter, search, and clear contract\n- Every doc listed in T6.1's inputs\n- `npx @astryxdesign/cli component <Name>` for each Astryx component the PR imports or names\nhandoff_to: done\ndone_when:\n- Verdict comment posted as `verdict: pass` or `verdict: changes` with the failing items listed\n- On pass: PR approved; orchestrator merges it and closes T6.1\n- On changes: one fix task opened per the retry rule and linked here; this review re-runs on the updated PR\nretry: if review returns changes, create one fix task for persona build, max 3, then persona plan\n\n## Acceptance\n- [ ] Verdict comment on the PR marks every done_when and Acceptance item of [T6.1] Architect: filter, search, and clear contract as met or not met, with evidence (command output or screenshot)\n- [ ] The diff touches only paths in T6.1's owns\n- [ ] Every component named in the contract was confirmed with the CLI; recorded specifiers and props match its output\n- [ ] Stubs (if any) contain no feature behavior and the contract matches docs/backlog/BACKLOG.md section 4\n\n## Astryx\nComponents to confirm with `npx @astryxdesign/cli component <Name>` before use:\n- SegmentedControl\n- Selector\n- Button\n- Toolbar\n- Stack\n- TextInput\n- Field"
+    },
+    {
+      "key": "T6.3",
+      "title": "[T6.3] Build: filterTasks pure function",
+      "labels": [
+        "type:task",
+        "persona:build",
+        "wave:1",
+        "area:filters",
+        "priority:p1"
+      ],
+      "parent": "S6",
+      "body": "## Outcome\nfilterTasks(tasks, query) returns the tasks that match status AND priority AND search, in input order, without mutating the input. Search is a trimmed, case-insensitive substring match on title only; empty search matches everything.\n\n## Agent intent\npersona: build\nwave: 1\nparallel_group: query\ndepends_on: [\"[T6.2] Review: filter, search, and clear contract\"]\nowns: [\"src/tasks/filterTasks.ts\", \"src/tasks/filterTasks.test.ts\"]\nmust_not:\n- Edit, create, or delete any path not in owns. Need one? Add label `blocked`, comment why, hand to plan.\n- Use an Astryx component, import path, or prop that `npx @astryxdesign/cli component <Name>` does not print; hard-code colors, spacing, radii, shadows, or fonts.\n- Add, remove, or upgrade dependencies (package.json belongs to T1.3).\n- Change src/tasks/types.ts or src/tasks/storage.ts, or add barrel/index files.\n- Sort (TaskList does)\ninputs:\n- This issue and its parent story\n- docs/contracts/tasks.md (from T2.1)\n- docs/contracts/query.md\n- `npx @astryxdesign/cli component <Name>` for every component under Astryx; import only from the entry it prints\nhandoff_to: review\ndone_when:\n- One branch, one PR; body says `Closes #<this issue>`; the diff touches only owns\n- filterTasks.test.ts passes: status all/active/completed; priority 'any' and each value; search case-insensitive, trimmed, title only (notes ignored); combined filters; DEFAULT_QUERY returns all; input unchanged\n- `npm run typecheck`, `npm run lint`, `npm test`, and `npm run build` exit 0 on the PR branch\nretry: if review returns changes, create one fix task for persona build, max 3, then persona plan\n\n## Acceptance\n- [ ] `npm test -- filterTasks` passes every case named in query.md\n- [ ] On main after every wave-1 lane merges: Active + High + 'milk' shows only incomplete high-priority tasks whose title contains 'milk'\n\n## Astryx\nnone"
+    },
+    {
+      "key": "T6.4",
+      "title": "[T6.4] Review: filterTasks pure function",
+      "labels": [
+        "type:task",
+        "persona:review",
+        "wave:1",
+        "area:filters",
+        "priority:p1"
+      ],
+      "parent": "S6",
+      "body": "## Outcome\nA pass or changes verdict exists on the PR for [T6.3] Build: filterTasks pure function, based on its done_when, its Acceptance, and Astryx usage checked against CLI output. On pass the orchestrator merges the PR; on changes one fix task exists.\n\n## Agent intent\npersona: review\nwave: 1\nparallel_group: query\ndepends_on: [\"[T6.3] Build: filterTasks pure function\"]\nowns: [\"none\"]\nmust_not:\n- Push commits to, or edit files in, the PR under review\n- Pass with any failing check or unmet item\n- Widen scope: findings outside the target's owns become a comment for plan, not a blocker\ninputs:\n- The PR that closes [T6.3] Build: filterTasks pure function\n- Issue [T6.3] Build: filterTasks pure function\n- Every doc listed in T6.3's inputs\n- `npx @astryxdesign/cli component <Name>` for each Astryx component the PR imports or names\nhandoff_to: done\ndone_when:\n- Verdict comment posted as `verdict: pass` or `verdict: changes` with the failing items listed\n- On pass: PR approved; orchestrator merges it and closes T6.3\n- On changes: one fix task opened per the retry rule and linked here; this review re-runs on the updated PR\nretry: if review returns changes, create one fix task for persona build, max 3, then persona plan\n\n## Acceptance\n- [ ] Verdict comment on the PR marks every done_when and Acceptance item of [T6.3] Build: filterTasks pure function as met or not met, with evidence (command output or screenshot)\n- [ ] The diff touches only paths in T6.3's owns\n- [ ] Every Astryx import in the diff matches the entry printed by `npx @astryxdesign/cli component <Name>`, and every prop used appears in that output\n- [ ] No hard-coded colors, spacing, radii, shadows, or fonts\n- [ ] `npm run typecheck`, `npm run lint`, `npm test`, and `npm run build` exit 0 when the reviewer runs them on the PR branch\n\n## Astryx\nnone"
+    },
+    {
+      "key": "T6.5",
+      "title": "[T6.5] Build: FilterBar with status, priority, and clear completed",
+      "labels": [
+        "type:task",
+        "persona:build",
+        "wave:1",
+        "area:filters",
+        "priority:p1"
+      ],
+      "parent": "S6",
+      "body": "## Outcome\nFilterBar renders a labeled status control (All, Active, Completed), a labeled priority select (Any, None, Low, Medium, High), and a 'Clear completed (n)' button. A change calls onChange with a full TaskQuery that keeps search as it was. Clear is disabled when completedCount is 0 and otherwise calls onClearCompleted.\n\n## Agent intent\npersona: build\nwave: 1\nparallel_group: query\ndepends_on: [\"[T6.2] Review: filter, search, and clear contract\"]\nowns: [\"src/tasks/FilterBar.tsx\", \"src/tasks/FilterBar.test.tsx\"]\nmust_not:\n- Edit, create, or delete any path not in owns. Need one? Add label `blocked`, comment why, hand to plan.\n- Use an Astryx component, import path, or prop that `npx @astryxdesign/cli component <Name>` does not print; hard-code colors, spacing, radii, shadows, or fonts.\n- Add, remove, or upgrade dependencies (package.json belongs to T1.3).\n- Change src/tasks/types.ts or src/tasks/storage.ts, or add barrel/index files.\n- Render the search input (T6.7 owns it)\ninputs:\n- This issue and its parent story\n- docs/contracts/tasks.md (from T2.1)\n- docs/contracts/query.md\n- `npx @astryxdesign/cli component <Name>` for every component under Astryx; import only from the entry it prints\nhandoff_to: review\ndone_when:\n- One branch, one PR; body says `Closes #<this issue>`; the diff touches only owns\n- FilterBar.test.tsx passes: controls reflect query; status change calls onChange({ ...query, status }); priority likewise; search is preserved\n- Test: Clear completed is disabled at 0, shows the count, and calls onClearCompleted; every control has an accessible name\n- `npm run typecheck`, `npm run lint`, `npm test`, and `npm run build` exit 0 on the PR branch\nretry: if review returns changes, create one fix task for persona build, max 3, then persona plan\n\n## Acceptance\n- [ ] `npm test -- FilterBar` passes every test named in query.md\n- [ ] Status and priority controls are reachable by Tab and operable with the keys the Astryx component documents\n\n## Astryx\nComponents to confirm with `npx @astryxdesign/cli component <Name>` before use:\n- SegmentedControl\n- Selector\n- Button\n- Toolbar\n- Stack"
+    },
+    {
+      "key": "T6.6",
+      "title": "[T6.6] Review: FilterBar with status, priority, and clear completed",
+      "labels": [
+        "type:task",
+        "persona:review",
+        "wave:1",
+        "area:filters",
+        "priority:p1"
+      ],
+      "parent": "S6",
+      "body": "## Outcome\nA pass or changes verdict exists on the PR for [T6.5] Build: FilterBar with status, priority, and clear completed, based on its done_when, its Acceptance, and Astryx usage checked against CLI output. On pass the orchestrator merges the PR; on changes one fix task exists.\n\n## Agent intent\npersona: review\nwave: 1\nparallel_group: query\ndepends_on: [\"[T6.5] Build: FilterBar with status, priority, and clear completed\"]\nowns: [\"none\"]\nmust_not:\n- Push commits to, or edit files in, the PR under review\n- Pass with any failing check or unmet item\n- Widen scope: findings outside the target's owns become a comment for plan, not a blocker\ninputs:\n- The PR that closes [T6.5] Build: FilterBar with status, priority, and clear completed\n- Issue [T6.5] Build: FilterBar with status, priority, and clear completed\n- Every doc listed in T6.5's inputs\n- `npx @astryxdesign/cli component <Name>` for each Astryx component the PR imports or names\nhandoff_to: done\ndone_when:\n- Verdict comment posted as `verdict: pass` or `verdict: changes` with the failing items listed\n- On pass: PR approved; orchestrator merges it and closes T6.5\n- On changes: one fix task opened per the retry rule and linked here; this review re-runs on the updated PR\nretry: if review returns changes, create one fix task for persona build, max 3, then persona plan\n\n## Acceptance\n- [ ] Verdict comment on the PR marks every done_when and Acceptance item of [T6.5] Build: FilterBar with status, priority, and clear completed as met or not met, with evidence (command output or screenshot)\n- [ ] The diff touches only paths in T6.5's owns\n- [ ] Every Astryx import in the diff matches the entry printed by `npx @astryxdesign/cli component <Name>`, and every prop used appears in that output\n- [ ] No hard-coded colors, spacing, radii, shadows, or fonts\n- [ ] `npm run typecheck`, `npm run lint`, `npm test`, and `npm run build` exit 0 when the reviewer runs them on the PR branch\n\n## Astryx\nComponents to confirm with `npx @astryxdesign/cli component <Name>` before use:\n- SegmentedControl\n- Selector\n- Button\n- Toolbar\n- Stack"
+    },
+    {
+      "key": "T6.7",
+      "title": "[T6.7] Build: SearchField",
+      "labels": [
+        "type:task",
+        "persona:build",
+        "wave:1",
+        "area:filters",
+        "priority:p1"
+      ],
+      "parent": "S6",
+      "body": "## Outcome\nSearchField is one labeled text input ('Search tasks') that shows value and calls onChange on every edit; clearing it calls onChange('').\n\n## Agent intent\npersona: build\nwave: 1\nparallel_group: query\ndepends_on: [\"[T6.2] Review: filter, search, and clear contract\"]\nowns: [\"src/tasks/SearchField.tsx\", \"src/tasks/SearchField.test.tsx\"]\nmust_not:\n- Edit, create, or delete any path not in owns. Need one? Add label `blocked`, comment why, hand to plan.\n- Use an Astryx component, import path, or prop that `npx @astryxdesign/cli component <Name>` does not print; hard-code colors, spacing, radii, shadows, or fonts.\n- Add, remove, or upgrade dependencies (package.json belongs to T1.3).\n- Change src/tasks/types.ts or src/tasks/storage.ts, or add barrel/index files.\n- Debounce or filter (filterTasks does)\ninputs:\n- This issue and its parent story\n- docs/contracts/tasks.md (from T2.1)\n- docs/contracts/query.md\n- `npx @astryxdesign/cli component <Name>` for every component under Astryx; import only from the entry it prints\nhandoff_to: review\ndone_when:\n- One branch, one PR; body says `Closes #<this issue>`; the diff touches only owns\n- SearchField.test.tsx passes: accessible name 'Search tasks'; shows value; typing calls onChange; clearing calls onChange('')\n- `npm run typecheck`, `npm run lint`, `npm test`, and `npm run build` exit 0 on the PR branch\nretry: if review returns changes, create one fix task for persona build, max 3, then persona plan\n\n## Acceptance\n- [ ] `npm test -- SearchField` passes\n- [ ] On main after every wave-1 lane merges: typing in Search tasks narrows the list as you type\n\n## Astryx\nComponents to confirm with `npx @astryxdesign/cli component <Name>` before use:\n- TextInput\n- Field"
+    },
+    {
+      "key": "T6.8",
+      "title": "[T6.8] Review: SearchField",
+      "labels": [
+        "type:task",
+        "persona:review",
+        "wave:1",
+        "area:filters",
+        "priority:p1"
+      ],
+      "parent": "S6",
+      "body": "## Outcome\nA pass or changes verdict exists on the PR for [T6.7] Build: SearchField, based on its done_when, its Acceptance, and Astryx usage checked against CLI output. On pass the orchestrator merges the PR; on changes one fix task exists.\n\n## Agent intent\npersona: review\nwave: 1\nparallel_group: query\ndepends_on: [\"[T6.7] Build: SearchField\"]\nowns: [\"none\"]\nmust_not:\n- Push commits to, or edit files in, the PR under review\n- Pass with any failing check or unmet item\n- Widen scope: findings outside the target's owns become a comment for plan, not a blocker\ninputs:\n- The PR that closes [T6.7] Build: SearchField\n- Issue [T6.7] Build: SearchField\n- Every doc listed in T6.7's inputs\n- `npx @astryxdesign/cli component <Name>` for each Astryx component the PR imports or names\nhandoff_to: done\ndone_when:\n- Verdict comment posted as `verdict: pass` or `verdict: changes` with the failing items listed\n- On pass: PR approved; orchestrator merges it and closes T6.7\n- On changes: one fix task opened per the retry rule and linked here; this review re-runs on the updated PR\nretry: if review returns changes, create one fix task for persona build, max 3, then persona plan\n\n## Acceptance\n- [ ] Verdict comment on the PR marks every done_when and Acceptance item of [T6.7] Build: SearchField as met or not met, with evidence (command output or screenshot)\n- [ ] The diff touches only paths in T6.7's owns\n- [ ] Every Astryx import in the diff matches the entry printed by `npx @astryxdesign/cli component <Name>`, and every prop used appears in that output\n- [ ] No hard-coded colors, spacing, radii, shadows, or fonts\n- [ ] `npm run typecheck`, `npm run lint`, `npm test`, and `npm run build` exit 0 when the reviewer runs them on the PR branch\n\n## Astryx\nComponents to confirm with `npx @astryxdesign/cli component <Name>` before use:\n- TextInput\n- Field"
+    },
+    {
+      "key": "E7",
+      "title": "[E7] Persistence and failure states",
+      "labels": [
+        "type:epic",
+        "persona:plan",
+        "wave:1",
+        "area:persistence",
+        "priority:p0"
+      ],
+      "parent": null,
+      "body": "## Outcome\nTasks survive reloads through localStorage. Loading, empty, no-matches, and save-error states are deliberate, and a failed write never drops what the user sees.\n\n## Agent intent\npersona: plan\nwave: 1\nparallel_group: data\ndepends_on: [\"[E1] App shell and design system\", \"[E2] Task contract\"]\nowns: [\"none\"]\nmust_not:\n- Contain code or open a PR\n- Close before every child story is closed\ninputs:\n- docs/backlog/BACKLOG.md\n- https://astryx.atmeta.com/\nhandoff_to: done\ndone_when:\n- S7 is closed\nretry: if review returns changes, create one fix task for persona build, max 3, then persona plan\n\n## Acceptance\n- [ ] S7 Acceptance checked on main\n\n## Astryx\nnone"
+    },
+    {
+      "key": "S7",
+      "title": "[S7] Tasks survive reload. A failed write shows an error and does not drop the in-memory list",
+      "labels": [
+        "type:story",
+        "persona:plan",
+        "wave:1",
+        "area:persistence",
+        "priority:p0"
+      ],
+      "parent": "E7",
+      "body": "## Outcome\nA localStorage adapter, an in-memory store hook, and the status views ship as four separate files, each with its own owner.\n\n## Agent intent\npersona: plan\nwave: 1\nparallel_group: data\ndepends_on: [\"[S1] Running app renders an Astryx-themed frame with a header and a main region\", \"[S2] Every feature shares one Task type and one storage interface\"]\nowns: [\"none\"]\nmust_not:\n- Contain code or open a PR\n- Close until every child task's review verdict is pass and the Acceptance below is checked on main\ninputs:\n- Parent epic E7\n- docs/backlog/BACKLOG.md\nhandoff_to: architect\ndone_when:\n- T7.2, T7.4, T7.6, T7.8, T7.10 have verdict pass\n- Acceptance checked on main after lanes capture and list merge\nretry: if review returns changes, create one fix task for persona build, max 3, then persona plan\n\n## Acceptance\n- [ ] Add 3 tasks, complete 1, reload: the same 3 tasks with the same completion\n- [ ] In devtools, save the original then set `Storage.prototype.setItem = () => { throw new DOMException('full', 'QuotaExceededError') }`; adding a task still shows it, plus an error banner saying changes were not saved\n- [ ] Restore setItem; the next change saves and the banner disappears\n- [ ] With empty storage, first load shows a brief loading state, then 'No tasks yet'\n- [ ] Set the storage key to `{` in devtools and reload: the app shows the empty state and the raw value is kept under the backup key\n\n## Astryx\nnone"
+    },
+    {
+      "key": "T7.1",
+      "title": "[T7.1] Architect: persistence and status-views contract",
+      "labels": [
+        "type:task",
+        "persona:architect",
+        "wave:1",
+        "area:persistence",
+        "priority:p0"
+      ],
+      "parent": "S7",
+      "body": "## Outcome\ndocs/contracts/data.md fixes load semantics (missing key gives []; unreadable data is copied to `${STORAGE_KEY}.backup` before returning the valid entries; storage access that throws gives []), save semantics (JSON; errors propagate), store semantics (loading then ready; no save before the first load completes; save after each change; a failed save keeps the list and sets saveError; the next success clears it; ids from crypto.randomUUID), all copy for loading, empty, no-matches and save-error, the Astryx components with printed specifiers and props, and test lists for T7.3, T7.5, T7.7 and T7.9.\n\n## Agent intent\npersona: architect\nwave: 1\nparallel_group: data\ndepends_on: [\"[T1.8] Review: app frame with header and main region\", \"[T2.4] Review: compose TaskScreen from contract stubs\"]\nowns: [\"docs/contracts/data.md\"]\nmust_not:\n- Implement feature behavior; stubs (if any) only return null, a copy of their input, or inert values\n- Edit any path not in owns\n- Name an Astryx component, import specifier, or prop the CLI did not print\n- Change src/tasks/types.ts or src/tasks/storage.ts; a contract gap gets label `blocked` and goes to plan\ninputs:\n- docs/contracts/tasks.md (from T2.1)\n- Parent story S7\n- `npx @astryxdesign/cli component <Name>` for each component under Astryx\n- `npx @astryxdesign/cli search <term> --type component` if a catalog name does not resolve\nhandoff_to: review\ndone_when:\n- docs/contracts/data.md has one section per build task in this lane: components (specifier + exact props), behavior rules, UI copy, named test list\n- One branch, one PR; body says `Closes #<this issue>` and pastes the CLI output it relied on\nretry: if review returns changes, create one fix task for persona build, max 3, then persona plan\n\n## Acceptance\n- [ ] A build agent can implement each task in this lane from tasks.md plus this doc without asking a question (reviewer reads it cold)\n- [ ] Every string the user sees in this lane is written out in the doc\n\n## Astryx\nComponents to confirm with `npx @astryxdesign/cli component <Name>` before use:\n- EmptyState\n- Spinner\n- Button\n- Banner"
+    },
+    {
+      "key": "T7.2",
+      "title": "[T7.2] Review: persistence and status-views contract",
+      "labels": [
+        "type:task",
+        "persona:review",
+        "wave:1",
+        "area:persistence",
+        "priority:p0"
+      ],
+      "parent": "S7",
+      "body": "## Outcome\nA pass or changes verdict exists on the PR for [T7.1] Architect: persistence and status-views contract, based on its done_when, its Acceptance, and Astryx usage checked against CLI output. On pass the orchestrator merges the PR; on changes one fix task exists.\n\n## Agent intent\npersona: review\nwave: 1\nparallel_group: data\ndepends_on: [\"[T7.1] Architect: persistence and status-views contract\"]\nowns: [\"none\"]\nmust_not:\n- Push commits to, or edit files in, the PR under review\n- Pass with any failing check or unmet item\n- Widen scope: findings outside the target's owns become a comment for plan, not a blocker\ninputs:\n- The PR that closes [T7.1] Architect: persistence and status-views contract\n- Issue [T7.1] Architect: persistence and status-views contract\n- Every doc listed in T7.1's inputs\n- `npx @astryxdesign/cli component <Name>` for each Astryx component the PR imports or names\nhandoff_to: done\ndone_when:\n- Verdict comment posted as `verdict: pass` or `verdict: changes` with the failing items listed\n- On pass: PR approved; orchestrator merges it and closes T7.1\n- On changes: one fix task opened per the retry rule and linked here; this review re-runs on the updated PR\nretry: if review returns changes, create one fix task for persona build, max 3, then persona plan\n\n## Acceptance\n- [ ] Verdict comment on the PR marks every done_when and Acceptance item of [T7.1] Architect: persistence and status-views contract as met or not met, with evidence (command output or screenshot)\n- [ ] The diff touches only paths in T7.1's owns\n- [ ] Every component named in the contract was confirmed with the CLI; recorded specifiers and props match its output\n- [ ] Stubs (if any) contain no feature behavior and the contract matches docs/backlog/BACKLOG.md section 4\n\n## Astryx\nComponents to confirm with `npx @astryxdesign/cli component <Name>` before use:\n- EmptyState\n- Spinner\n- Button\n- Banner"
+    },
+    {
+      "key": "T7.3",
+      "title": "[T7.3] Build: localStorage adapter",
+      "labels": [
+        "type:task",
+        "persona:build",
+        "wave:1",
+        "area:persistence",
+        "priority:p0"
+      ],
+      "parent": "S7",
+      "body": "## Outcome\ncreateLocalTaskStorage(storage?) implements TaskStorage over Web Storage under STORAGE_KEY, and localTaskStorage is the default instance. Missing data loads as []. Unreadable data is copied to the backup key before load returns the valid entries, so nothing saved is silently destroyed. save writes JSON and lets write errors (quota, security) reach the caller.\n\n## Agent intent\npersona: build\nwave: 1\nparallel_group: data\ndepends_on: [\"[T7.2] Review: persistence and status-views contract\"]\nowns: [\"src/tasks/localTaskStorage.ts\", \"src/tasks/localTaskStorage.test.ts\"]\nmust_not:\n- Edit, create, or delete any path not in owns. Need one? Add label `blocked`, comment why, hand to plan.\n- Use an Astryx component, import path, or prop that `npx @astryxdesign/cli component <Name>` does not print; hard-code colors, spacing, radii, shadows, or fonts.\n- Add, remove, or upgrade dependencies (package.json belongs to T1.3).\n- Change src/tasks/types.ts or src/tasks/storage.ts, or add barrel/index files.\n- Swallow save errors (the store needs them)\n- Touch window.localStorage at module load; access it lazily so blocked storage cannot crash the import\n- Add schema migration logic (v1 only)\ninputs:\n- This issue and its parent story\n- docs/contracts/tasks.md (from T2.1)\n- docs/contracts/data.md\n- `npx @astryxdesign/cli component <Name>` for every component under Astryx; import only from the entry it prints\nhandoff_to: review\ndone_when:\n- One branch, one PR; body says `Closes #<this issue>`; the diff touches only owns\n- localTaskStorage.test.ts passes with a fake Storage: missing key gives []; save then load round-trips\n- Test: invalid JSON puts the raw value in the backup key and returns []; an array with one bad entry is backed up and returns the valid entries\n- Test: getItem that throws gives []; setItem that throws QuotaExceededError makes save throw\n- `npm run typecheck`, `npm run lint`, `npm test`, and `npm run build` exit 0 on the PR branch\nretry: if review returns changes, create one fix task for persona build, max 3, then persona plan\n\n## Acceptance\n- [ ] `npm test -- localTaskStorage` passes every test named in data.md\n- [ ] On main after lane capture merges: after adding a task, devtools Local Storage shows STORAGE_KEY holding a JSON array\n\n## Astryx\nnone"
+    },
+    {
+      "key": "T7.4",
+      "title": "[T7.4] Review: localStorage adapter",
+      "labels": [
+        "type:task",
+        "persona:review",
+        "wave:1",
+        "area:persistence",
+        "priority:p0"
+      ],
+      "parent": "S7",
+      "body": "## Outcome\nA pass or changes verdict exists on the PR for [T7.3] Build: localStorage adapter, based on its done_when, its Acceptance, and Astryx usage checked against CLI output. On pass the orchestrator merges the PR; on changes one fix task exists.\n\n## Agent intent\npersona: review\nwave: 1\nparallel_group: data\ndepends_on: [\"[T7.3] Build: localStorage adapter\"]\nowns: [\"none\"]\nmust_not:\n- Push commits to, or edit files in, the PR under review\n- Pass with any failing check or unmet item\n- Widen scope: findings outside the target's owns become a comment for plan, not a blocker\ninputs:\n- The PR that closes [T7.3] Build: localStorage adapter\n- Issue [T7.3] Build: localStorage adapter\n- Every doc listed in T7.3's inputs\n- `npx @astryxdesign/cli component <Name>` for each Astryx component the PR imports or names\nhandoff_to: done\ndone_when:\n- Verdict comment posted as `verdict: pass` or `verdict: changes` with the failing items listed\n- On pass: PR approved; orchestrator merges it and closes T7.3\n- On changes: one fix task opened per the retry rule and linked here; this review re-runs on the updated PR\nretry: if review returns changes, create one fix task for persona build, max 3, then persona plan\n\n## Acceptance\n- [ ] Verdict comment on the PR marks every done_when and Acceptance item of [T7.3] Build: localStorage adapter as met or not met, with evidence (command output or screenshot)\n- [ ] The diff touches only paths in T7.3's owns\n- [ ] Every Astryx import in the diff matches the entry printed by `npx @astryxdesign/cli component <Name>`, and every prop used appears in that output\n- [ ] No hard-coded colors, spacing, radii, shadows, or fonts\n- [ ] `npm run typecheck`, `npm run lint`, `npm test`, and `npm run build` exit 0 when the reviewer runs them on the PR branch\n\n## Astryx\nnone"
+    },
+    {
+      "key": "T7.5",
+      "title": "[T7.5] Build: useTasks store hook",
+      "labels": [
+        "type:task",
+        "persona:build",
+        "wave:1",
+        "area:persistence",
+        "priority:p0"
+      ],
+      "parent": "S7",
+      "body": "## Outcome\nuseTasks(storage) holds the in-memory list. It starts at status 'loading', reads storage once, then becomes 'ready'. add, update, remove, and clearCompleted change the list and then save. It never saves before the first load completes. A failed save keeps the in-memory list and sets saveError; the next successful save clears it.\n\n## Agent intent\npersona: build\nwave: 1\nparallel_group: data\ndepends_on: [\"[T7.2] Review: persistence and status-views contract\"]\nowns: [\"src/tasks/useTasks.ts\", \"src/tasks/useTasks.test.ts\"]\nmust_not:\n- Edit, create, or delete any path not in owns. Need one? Add label `blocked`, comment why, hand to plan.\n- Use an Astryx component, import path, or prop that `npx @astryxdesign/cli component <Name>` does not print; hard-code colors, spacing, radii, shadows, or fonts.\n- Add, remove, or upgrade dependencies (package.json belongs to T1.3).\n- Change src/tasks/types.ts or src/tasks/storage.ts, or add barrel/index files.\n- Import localTaskStorage (storage is injected; TaskScreen passes it)\n- Sort or filter\n- Retry saves on a timer\ninputs:\n- This issue and its parent story\n- docs/contracts/tasks.md (from T2.1)\n- docs/contracts/data.md\n- `npx @astryxdesign/cli component <Name>` for every component under Astryx; import only from the entry it prints\nhandoff_to: review\ndone_when:\n- One branch, one PR; body says `Closes #<this issue>`; the diff touches only owns\n- useTasks.test.ts (renderHook, fake TaskStorage) passes: starts loading then ready with loaded tasks; save is not called before load completes\n- Test: add trims the title, ignores an empty title, and sets id, createdAt, completed false, plus notes, priority and dueDate from the draft\n- Test: update changes only the matching id; remove deletes one; clearCompleted removes only completed tasks and keeps every active one\n- Test: save gets the new list after each change; when save throws, tasks stay in memory and saveError is set; the next successful change clears saveError\n- `npm run typecheck`, `npm run lint`, `npm test`, and `npm run build` exit 0 on the PR branch\nretry: if review returns changes, create one fix task for persona build, max 3, then persona plan\n\n## Acceptance\n- [ ] `npm test -- useTasks` passes every test named in data.md\n- [ ] On main after lanes capture and list merge: S7's reload check passes\n\n## Astryx\nnone"
+    },
+    {
+      "key": "T7.6",
+      "title": "[T7.6] Review: useTasks store hook",
+      "labels": [
+        "type:task",
+        "persona:review",
+        "wave:1",
+        "area:persistence",
+        "priority:p0"
+      ],
+      "parent": "S7",
+      "body": "## Outcome\nA pass or changes verdict exists on the PR for [T7.5] Build: useTasks store hook, based on its done_when, its Acceptance, and Astryx usage checked against CLI output. On pass the orchestrator merges the PR; on changes one fix task exists.\n\n## Agent intent\npersona: review\nwave: 1\nparallel_group: data\ndepends_on: [\"[T7.5] Build: useTasks store hook\"]\nowns: [\"none\"]\nmust_not:\n- Push commits to, or edit files in, the PR under review\n- Pass with any failing check or unmet item\n- Widen scope: findings outside the target's owns become a comment for plan, not a blocker\ninputs:\n- The PR that closes [T7.5] Build: useTasks store hook\n- Issue [T7.5] Build: useTasks store hook\n- Every doc listed in T7.5's inputs\n- `npx @astryxdesign/cli component <Name>` for each Astryx component the PR imports or names\nhandoff_to: done\ndone_when:\n- Verdict comment posted as `verdict: pass` or `verdict: changes` with the failing items listed\n- On pass: PR approved; orchestrator merges it and closes T7.5\n- On changes: one fix task opened per the retry rule and linked here; this review re-runs on the updated PR\nretry: if review returns changes, create one fix task for persona build, max 3, then persona plan\n\n## Acceptance\n- [ ] Verdict comment on the PR marks every done_when and Acceptance item of [T7.5] Build: useTasks store hook as met or not met, with evidence (command output or screenshot)\n- [ ] The diff touches only paths in T7.5's owns\n- [ ] Every Astryx import in the diff matches the entry printed by `npx @astryxdesign/cli component <Name>`, and every prop used appears in that output\n- [ ] No hard-coded colors, spacing, radii, shadows, or fonts\n- [ ] `npm run typecheck`, `npm run lint`, `npm test`, and `npm run build` exit 0 when the reviewer runs them on the PR branch\n\n## Astryx\nnone"
+    },
+    {
+      "key": "T7.7",
+      "title": "[T7.7] Build: loading and empty views",
+      "labels": [
+        "type:task",
+        "persona:build",
+        "wave:1",
+        "area:persistence",
+        "priority:p0"
+      ],
+      "parent": "S7",
+      "body": "## Outcome\nStatusViews exports LoadingState (an Astryx spinner announced as loading tasks) and EmptyState with two variants: 'no-tasks' (contract copy inviting the first task) and 'no-matches' (contract copy plus a Clear filters button that calls onClearFilters).\n\n## Agent intent\npersona: build\nwave: 1\nparallel_group: data\ndepends_on: [\"[T7.2] Review: persistence and status-views contract\"]\nowns: [\"src/tasks/StatusViews.tsx\", \"src/tasks/StatusViews.test.tsx\"]\nmust_not:\n- Edit, create, or delete any path not in owns. Need one? Add label `blocked`, comment why, hand to plan.\n- Use an Astryx component, import path, or prop that `npx @astryxdesign/cli component <Name>` does not print; hard-code colors, spacing, radii, shadows, or fonts.\n- Add, remove, or upgrade dependencies (package.json belongs to T1.3).\n- Change src/tasks/types.ts or src/tasks/storage.ts, or add barrel/index files.\n- Decide which state to show (TaskScreen does)\ninputs:\n- This issue and its parent story\n- docs/contracts/tasks.md (from T2.1)\n- docs/contracts/data.md\n- `npx @astryxdesign/cli component <Name>` for every component under Astryx; import only from the entry it prints\nhandoff_to: review\ndone_when:\n- One branch, one PR; body says `Closes #<this issue>`; the diff touches only owns\n- StatusViews.test.tsx passes: LoadingState has role status with the contract name; no-tasks shows its copy and no button; no-matches shows its copy and Clear filters calls onClearFilters\n- `npm run typecheck`, `npm run lint`, `npm test`, and `npm run build` exit 0 on the PR branch\nretry: if review returns changes, create one fix task for persona build, max 3, then persona plan\n\n## Acceptance\n- [ ] `npm test -- StatusViews` passes\n- [ ] On main with empty storage: the first load shows 'No tasks yet'; filtering to Completed with nothing completed shows the no-matches state, and Clear filters brings the list back\n\n## Astryx\nComponents to confirm with `npx @astryxdesign/cli component <Name>` before use:\n- EmptyState\n- Spinner\n- Button"
+    },
+    {
+      "key": "T7.8",
+      "title": "[T7.8] Review: loading and empty views",
+      "labels": [
+        "type:task",
+        "persona:review",
+        "wave:1",
+        "area:persistence",
+        "priority:p0"
+      ],
+      "parent": "S7",
+      "body": "## Outcome\nA pass or changes verdict exists on the PR for [T7.7] Build: loading and empty views, based on its done_when, its Acceptance, and Astryx usage checked against CLI output. On pass the orchestrator merges the PR; on changes one fix task exists.\n\n## Agent intent\npersona: review\nwave: 1\nparallel_group: data\ndepends_on: [\"[T7.7] Build: loading and empty views\"]\nowns: [\"none\"]\nmust_not:\n- Push commits to, or edit files in, the PR under review\n- Pass with any failing check or unmet item\n- Widen scope: findings outside the target's owns become a comment for plan, not a blocker\ninputs:\n- The PR that closes [T7.7] Build: loading and empty views\n- Issue [T7.7] Build: loading and empty views\n- Every doc listed in T7.7's inputs\n- `npx @astryxdesign/cli component <Name>` for each Astryx component the PR imports or names\nhandoff_to: done\ndone_when:\n- Verdict comment posted as `verdict: pass` or `verdict: changes` with the failing items listed\n- On pass: PR approved; orchestrator merges it and closes T7.7\n- On changes: one fix task opened per the retry rule and linked here; this review re-runs on the updated PR\nretry: if review returns changes, create one fix task for persona build, max 3, then persona plan\n\n## Acceptance\n- [ ] Verdict comment on the PR marks every done_when and Acceptance item of [T7.7] Build: loading and empty views as met or not met, with evidence (command output or screenshot)\n- [ ] The diff touches only paths in T7.7's owns\n- [ ] Every Astryx import in the diff matches the entry printed by `npx @astryxdesign/cli component <Name>`, and every prop used appears in that output\n- [ ] No hard-coded colors, spacing, radii, shadows, or fonts\n- [ ] `npm run typecheck`, `npm run lint`, `npm test`, and `npm run build` exit 0 when the reviewer runs them on the PR branch\n\n## Astryx\nComponents to confirm with `npx @astryxdesign/cli component <Name>` before use:\n- EmptyState\n- Spinner\n- Button"
+    },
+    {
+      "key": "T7.9",
+      "title": "[T7.9] Build: save-error banner",
+      "labels": [
+        "type:task",
+        "persona:build",
+        "wave:1",
+        "area:persistence",
+        "priority:p0"
+      ],
+      "parent": "S7",
+      "body": "## Outcome\nSaveErrorBanner renders nothing when message is null. Otherwise it renders an Astryx banner, announced as an alert, telling the user that changes are kept in this tab but were not saved.\n\n## Agent intent\npersona: build\nwave: 1\nparallel_group: data\ndepends_on: [\"[T7.2] Review: persistence and status-views contract\"]\nowns: [\"src/tasks/SaveErrorBanner.tsx\", \"src/tasks/SaveErrorBanner.test.tsx\"]\nmust_not:\n- Edit, create, or delete any path not in owns. Need one? Add label `blocked`, comment why, hand to plan.\n- Use an Astryx component, import path, or prop that `npx @astryxdesign/cli component <Name>` does not print; hard-code colors, spacing, radii, shadows, or fonts.\n- Add, remove, or upgrade dependencies (package.json belongs to T1.3).\n- Change src/tasks/types.ts or src/tasks/storage.ts, or add barrel/index files.\n- Offer a retry button or dismiss that hides an unresolved error\ninputs:\n- This issue and its parent story\n- docs/contracts/tasks.md (from T2.1)\n- docs/contracts/data.md\n- `npx @astryxdesign/cli component <Name>` for every component under Astryx; import only from the entry it prints\nhandoff_to: review\ndone_when:\n- One branch, one PR; body says `Closes #<this issue>`; the diff touches only owns\n- SaveErrorBanner.test.tsx passes: null renders nothing; a message renders role alert with the contract copy; rerendering with null removes it\n- `npm run typecheck`, `npm run lint`, `npm test`, and `npm run build` exit 0 on the PR branch\nretry: if review returns changes, create one fix task for persona build, max 3, then persona plan\n\n## Acceptance\n- [ ] `npm test -- SaveErrorBanner` passes\n- [ ] On main with setItem forced to throw in devtools: adding a task shows the banner and the task stays in the list\n\n## Astryx\nComponents to confirm with `npx @astryxdesign/cli component <Name>` before use:\n- Banner"
+    },
+    {
+      "key": "T7.10",
+      "title": "[T7.10] Review: save-error banner",
+      "labels": [
+        "type:task",
+        "persona:review",
+        "wave:1",
+        "area:persistence",
+        "priority:p0"
+      ],
+      "parent": "S7",
+      "body": "## Outcome\nA pass or changes verdict exists on the PR for [T7.9] Build: save-error banner, based on its done_when, its Acceptance, and Astryx usage checked against CLI output. On pass the orchestrator merges the PR; on changes one fix task exists.\n\n## Agent intent\npersona: review\nwave: 1\nparallel_group: data\ndepends_on: [\"[T7.9] Build: save-error banner\"]\nowns: [\"none\"]\nmust_not:\n- Push commits to, or edit files in, the PR under review\n- Pass with any failing check or unmet item\n- Widen scope: findings outside the target's owns become a comment for plan, not a blocker\ninputs:\n- The PR that closes [T7.9] Build: save-error banner\n- Issue [T7.9] Build: save-error banner\n- Every doc listed in T7.9's inputs\n- `npx @astryxdesign/cli component <Name>` for each Astryx component the PR imports or names\nhandoff_to: done\ndone_when:\n- Verdict comment posted as `verdict: pass` or `verdict: changes` with the failing items listed\n- On pass: PR approved; orchestrator merges it and closes T7.9\n- On changes: one fix task opened per the retry rule and linked here; this review re-runs on the updated PR\nretry: if review returns changes, create one fix task for persona build, max 3, then persona plan\n\n## Acceptance\n- [ ] Verdict comment on the PR marks every done_when and Acceptance item of [T7.9] Build: save-error banner as met or not met, with evidence (command output or screenshot)\n- [ ] The diff touches only paths in T7.9's owns\n- [ ] Every Astryx import in the diff matches the entry printed by `npx @astryxdesign/cli component <Name>`, and every prop used appears in that output\n- [ ] No hard-coded colors, spacing, radii, shadows, or fonts\n- [ ] `npm run typecheck`, `npm run lint`, `npm test`, and `npm run build` exit 0 when the reviewer runs them on the PR branch\n\n## Astryx\nComponents to confirm with `npx @astryxdesign/cli component <Name>` before use:\n- Banner"
+    },
+    {
+      "key": "E8",
+      "title": "[E8] Accessible, responsive, testable app",
+      "labels": [
+        "type:epic",
+        "persona:plan",
+        "wave:2",
+        "area:a11y",
+        "area:quality",
+        "priority:p0"
+      ],
+      "parent": null,
+      "body": "## Outcome\nThe whole app works from the keyboard alone with visible focus and a name on every control, holds up at phone width, and one Playwright path proves add, complete, reload, still complete.\n\n## Agent intent\npersona: plan\nwave: 2\nparallel_group: a11y\ndepends_on: [\"[E3] Capture a task\", \"[E4] View and complete tasks\", \"[E5] Edit and delete\", \"[E6] Filter, search, and clear completed\", \"[E7] Persistence and failure states\"]\nowns: [\"none\"]\nmust_not:\n- Contain code or open a PR\n- Close before every child story is closed\ninputs:\n- docs/backlog/BACKLOG.md\n- https://astryx.atmeta.com/\nhandoff_to: done\ndone_when:\n- S8 is closed\nretry: if review returns changes, create one fix task for persona build, max 3, then persona plan\n\n## Acceptance\n- [ ] S8 Acceptance checked on main\n\n## Astryx\nnone"
+    },
+    {
+      "key": "S8",
+      "title": "[S8] Keyboard-only use, labeled controls, focus, empty state, and one Playwright path: add, complete, reload, still complete",
+      "labels": [
+        "type:story",
+        "persona:plan",
+        "wave:2",
+        "area:a11y",
+        "area:quality",
+        "priority:p0"
+      ],
+      "parent": "E8",
+      "body": "## Outcome\nWave 2 adds tests only. A defect a test finds is fixed by the owner of the failing file through a fix task, so ownership stays clean.\n\n## Agent intent\npersona: plan\nwave: 2\nparallel_group: a11y\ndepends_on: [\"[S3] User adds a task with title, notes, priority, and due date, and sees it appear\", \"[S4] User sees incomplete tasks first and can toggle complete\", \"[S5] User edits fields and deletes with confirmation\", \"[S6] User filters, searches, and clears completed tasks without losing active ones\", \"[S7] Tasks survive reload. A failed write shows an error and does not drop the in-memory list\"]\nowns: [\"none\"]\nmust_not:\n- Contain code or open a PR\n- Close until every child task's review verdict is pass and the Acceptance below is checked on main\ninputs:\n- Parent epic E8\n- docs/backlog/BACKLOG.md\nhandoff_to: architect\ndone_when:\n- T8.2, T8.4, T8.6 have verdict pass\n- Acceptance checked on main\nretry: if review returns changes, create one fix task for persona build, max 3, then persona plan\n\n## Acceptance\n- [ ] Without a mouse, add, complete, edit, delete, filter, search, and clear completed all work with Tab, Shift+Tab, Enter, Space, and Escape\n- [ ] Every focused control shows a visible focus indicator\n- [ ] The devtools accessibility tree shows no unnamed buttons, inputs, checkboxes, or selects\n- [ ] First visit with empty storage shows the empty state\n- [ ] At 375px width there is no horizontal scroll and every control is usable\n- [ ] `npm run test:e2e` passes in the desktop and mobile projects\n\n## Astryx\nnone"
+    },
+    {
+      "key": "T8.1",
+      "title": "[T8.1] Architect: accessibility, responsive, and e2e contract",
+      "labels": [
+        "type:task",
+        "persona:architect",
+        "wave:2",
+        "area:a11y",
+        "area:quality",
+        "priority:p0"
+      ],
+      "parent": "S8",
+      "body": "## Outcome\ndocs/contracts/a11y.md fixes the keyboard map (tab order across composer, search, filters, clear completed, and rows), the keys each control answers to, focus rules (dialog open, close, after add, after delete), the inventory of required accessible names, the visible-focus rule, the 375px no-horizontal-scroll rule, the test list for T8.3, and the exact steps for T8.5.\n\n## Agent intent\npersona: architect\nwave: 2\nparallel_group: a11y\ndepends_on: [\"[T3.4] Review: TaskComposer form with title validation\", \"[T4.4] Review: TaskRow\", \"[T4.6] Review: TaskList container and sort order\", \"[T5.4] Review: EditTaskDialog\", \"[T5.6] Review: ConfirmDeleteDialog\", \"[T6.4] Review: filterTasks pure function\", \"[T6.6] Review: FilterBar with status, priority, and clear completed\", \"[T6.8] Review: SearchField\", \"[T7.4] Review: localStorage adapter\", \"[T7.6] Review: useTasks store hook\", \"[T7.8] Review: loading and empty views\", \"[T7.10] Review: save-error banner\"]\nowns: [\"docs/contracts/a11y.md\"]\nmust_not:\n- Implement feature behavior; stubs (if any) only return null, a copy of their input, or inert values\n- Edit any path not in owns\n- Name an Astryx component, import specifier, or prop the CLI did not print\ninputs:\n- docs/contracts/tasks.md (from T2.1)\n- docs/contracts/capture.md, list.md, mutate.md, query.md, data.md\n- The running app on main\n- `npx @astryxdesign/cli component <Name>` keyboard notes for each component in use\nhandoff_to: review\ndone_when:\n- a11y.md lists every interactive control on screen with its expected accessible name and keys\n- a11y.md gives T8.3 one named test per flow and T8.5 a step list\n- One branch, one PR; body says `Closes #<this issue>` and pastes the CLI output it relied on\nretry: if review returns changes, create one fix task for persona build, max 3, then persona plan\n\n## Acceptance\n- [ ] Following a11y.md by hand on main finds no step that contradicts the lane contracts\n- [ ] Every control in the inventory can be found on the running app\n\n## Astryx\nComponents to confirm with `npx @astryxdesign/cli component <Name>` before use:\n- VisuallyHidden"
+    },
+    {
+      "key": "T8.2",
+      "title": "[T8.2] Review: accessibility, responsive, and e2e contract",
+      "labels": [
+        "type:task",
+        "persona:review",
+        "wave:2",
+        "area:a11y",
+        "area:quality",
+        "priority:p0"
+      ],
+      "parent": "S8",
+      "body": "## Outcome\nA pass or changes verdict exists on the PR for [T8.1] Architect: accessibility, responsive, and e2e contract, based on its done_when, its Acceptance, and Astryx usage checked against CLI output. On pass the orchestrator merges the PR; on changes one fix task exists.\n\n## Agent intent\npersona: review\nwave: 2\nparallel_group: a11y\ndepends_on: [\"[T8.1] Architect: accessibility, responsive, and e2e contract\"]\nowns: [\"none\"]\nmust_not:\n- Push commits to, or edit files in, the PR under review\n- Pass with any failing check or unmet item\n- Widen scope: findings outside the target's owns become a comment for plan, not a blocker\ninputs:\n- The PR that closes [T8.1] Architect: accessibility, responsive, and e2e contract\n- Issue [T8.1] Architect: accessibility, responsive, and e2e contract\n- Every doc listed in T8.1's inputs\n- `npx @astryxdesign/cli component <Name>` for each Astryx component the PR imports or names\nhandoff_to: done\ndone_when:\n- Verdict comment posted as `verdict: pass` or `verdict: changes` with the failing items listed\n- On pass: PR approved; orchestrator merges it and closes T8.1\n- On changes: one fix task opened per the retry rule and linked here; this review re-runs on the updated PR\nretry: if review returns changes, create one fix task for persona build, max 3, then persona plan\n\n## Acceptance\n- [ ] Verdict comment on the PR marks every done_when and Acceptance item of [T8.1] Architect: accessibility, responsive, and e2e contract as met or not met, with evidence (command output or screenshot)\n- [ ] The diff touches only paths in T8.1's owns\n- [ ] Every component named in the contract was confirmed with the CLI; recorded specifiers and props match its output\n- [ ] Stubs (if any) contain no feature behavior and the contract matches docs/backlog/BACKLOG.md section 4\n\n## Astryx\nComponents to confirm with `npx @astryxdesign/cli component <Name>` before use:\n- VisuallyHidden"
+    },
+    {
+      "key": "T8.3",
+      "title": "[T8.3] Build: keyboard-only and label integration tests",
+      "labels": [
+        "type:task",
+        "persona:build",
+        "wave:2",
+        "area:a11y",
+        "area:quality",
+        "priority:p0"
+      ],
+      "parent": "S8",
+      "body": "## Outcome\nOne Vitest suite renders <App /> and drives it with user-event keyboard input only, through every flow in docs/contracts/a11y.md, and asserts every interactive element has an accessible name. When a check fails because of another file, that file's owner gets a fix task.\n\n## Agent intent\npersona: build\nwave: 2\nparallel_group: a11y\ndepends_on: [\"[T8.2] Review: accessibility, responsive, and e2e contract\"]\nowns: [\"src/a11y.test.tsx\"]\nmust_not:\n- Edit, create, or delete any path not in owns. Need one? Add label `blocked`, comment why, hand to plan.\n- Use an Astryx component, import path, or prop that `npx @astryxdesign/cli component <Name>` does not print; hard-code colors, spacing, radii, shadows, or fonts.\n- Add, remove, or upgrade dependencies (package.json belongs to T1.3).\n- Change src/tasks/types.ts or src/tasks/storage.ts, or add barrel/index files.\n- Edit any product file; for a defect, open a fix task for the file's owner (section 4), label this PR `blocked`, and wait\n- Use click(), fireEvent, or pointer events\n- Skip tests or mark them expected-to-fail to get green\ninputs:\n- This issue and its parent story\n- docs/contracts/tasks.md (from T2.1)\n- docs/contracts/a11y.md\n- `npx @astryxdesign/cli component <Name>` for every component under Astryx; import only from the entry it prints\nhandoff_to: review\ndone_when:\n- One branch, one PR; body says `Closes #<this issue>`; the diff touches only owns\n- src/a11y.test.tsx passes on main, starting from cleared localStorage, covering: empty state on first render; add with Tab, typing, and Enter; toggle with Space; edit with Enter, then Escape returns focus to Edit; delete by keyboard leaves focus in Title; filter, search, and clear completed by keyboard\n- Test: every button, textbox, checkbox, combobox, and radio has a non-empty accessible name\n- `npm run typecheck`, `npm run lint`, `npm test`, and `npm run build` exit 0 on the PR branch\nretry: if review returns changes, create one fix task for persona build, max 3, then persona plan\n\n## Acceptance\n- [ ] `npm test -- a11y` passes on main\n- [ ] Each flow in a11y.md maps to one named test\n\n## Astryx\nnone"
+    },
+    {
+      "key": "T8.4",
+      "title": "[T8.4] Review: keyboard-only and label integration tests",
+      "labels": [
+        "type:task",
+        "persona:review",
+        "wave:2",
+        "area:a11y",
+        "area:quality",
+        "priority:p0"
+      ],
+      "parent": "S8",
+      "body": "## Outcome\nA pass or changes verdict exists on the PR for [T8.3] Build: keyboard-only and label integration tests, based on its done_when, its Acceptance, and Astryx usage checked against CLI output. On pass the orchestrator merges the PR; on changes one fix task exists.\n\n## Agent intent\npersona: review\nwave: 2\nparallel_group: a11y\ndepends_on: [\"[T8.3] Build: keyboard-only and label integration tests\"]\nowns: [\"none\"]\nmust_not:\n- Push commits to, or edit files in, the PR under review\n- Pass with any failing check or unmet item\n- Widen scope: findings outside the target's owns become a comment for plan, not a blocker\ninputs:\n- The PR that closes [T8.3] Build: keyboard-only and label integration tests\n- Issue [T8.3] Build: keyboard-only and label integration tests\n- Every doc listed in T8.3's inputs\n- `npx @astryxdesign/cli component <Name>` for each Astryx component the PR imports or names\nhandoff_to: done\ndone_when:\n- Verdict comment posted as `verdict: pass` or `verdict: changes` with the failing items listed\n- On pass: PR approved; orchestrator merges it and closes T8.3\n- On changes: one fix task opened per the retry rule and linked here; this review re-runs on the updated PR\nretry: if review returns changes, create one fix task for persona build, max 3, then persona plan\n\n## Acceptance\n- [ ] Verdict comment on the PR marks every done_when and Acceptance item of [T8.3] Build: keyboard-only and label integration tests as met or not met, with evidence (command output or screenshot)\n- [ ] The diff touches only paths in T8.3's owns\n- [ ] Every Astryx import in the diff matches the entry printed by `npx @astryxdesign/cli component <Name>`, and every prop used appears in that output\n- [ ] No hard-coded colors, spacing, radii, shadows, or fonts\n- [ ] `npm run typecheck`, `npm run lint`, `npm test`, and `npm run build` exit 0 when the reviewer runs them on the PR branch\n\n## Astryx\nnone"
+    },
+    {
+      "key": "T8.5",
+      "title": "[T8.5] Build: Playwright happy path (add, complete, reload, still complete)",
+      "labels": [
+        "type:task",
+        "persona:build",
+        "wave:2",
+        "area:a11y",
+        "area:quality",
+        "priority:p0"
+      ],
+      "parent": "S8",
+      "body": "## Outcome\nOne Playwright test runs in both projects from playwright.config.ts: from fresh storage, add a task with the keyboard, complete it, reload, and see it still completed and below incomplete tasks; the page has no horizontal overflow.\n\n## Agent intent\npersona: build\nwave: 2\nparallel_group: a11y\ndepends_on: [\"[T8.2] Review: accessibility, responsive, and e2e contract\"]\nowns: [\"e2e/happy-path.spec.ts\"]\nmust_not:\n- Edit, create, or delete any path not in owns. Need one? Add label `blocked`, comment why, hand to plan.\n- Use an Astryx component, import path, or prop that `npx @astryxdesign/cli component <Name>` does not print; hard-code colors, spacing, radii, shadows, or fonts.\n- Add, remove, or upgrade dependencies (package.json belongs to T1.3).\n- Change src/tasks/types.ts or src/tasks/storage.ts, or add barrel/index files.\n- Edit playwright.config.ts or package.json (T1.3 owns them)\n- Add a second test path\n- Use fixed sleeps\ninputs:\n- This issue and its parent story\n- docs/contracts/a11y.md (e2e steps)\n- README (`npx playwright install chromium`)\nhandoff_to: review\ndone_when:\n- One branch, one PR; body says `Closes #<this issue>`; the diff touches only owns\n- e2e/happy-path.spec.ts follows the a11y.md steps and asserts the checkbox is still checked after reload\n- It asserts `document.documentElement.scrollWidth <= window.innerWidth`\n- `npm run test:e2e` passes in Desktop Chrome and Pixel 7\n- `npm run typecheck`, `npm run lint`, `npm test`, and `npm run build` exit 0 on the PR branch\nretry: if review returns changes, create one fix task for persona build, max 3, then persona plan\n\n## Acceptance\n- [ ] `npm run test:e2e` output shows one test passing in 2 projects\n- [ ] Breaking persistence locally (save as a no-op) makes the test fail; revert before pushing\n\n## Astryx\nnone"
+    },
+    {
+      "key": "T8.6",
+      "title": "[T8.6] Review: Playwright happy path (add, complete, reload, still complete)",
+      "labels": [
+        "type:task",
+        "persona:review",
+        "wave:2",
+        "area:a11y",
+        "area:quality",
+        "priority:p0"
+      ],
+      "parent": "S8",
+      "body": "## Outcome\nA pass or changes verdict exists on the PR for [T8.5] Build: Playwright happy path (add, complete, reload, still complete), based on its done_when, its Acceptance, and Astryx usage checked against CLI output. On pass the orchestrator merges the PR; on changes one fix task exists.\n\n## Agent intent\npersona: review\nwave: 2\nparallel_group: a11y\ndepends_on: [\"[T8.5] Build: Playwright happy path (add, complete, reload, still complete)\"]\nowns: [\"none\"]\nmust_not:\n- Push commits to, or edit files in, the PR under review\n- Pass with any failing check or unmet item\n- Widen scope: findings outside the target's owns become a comment for plan, not a blocker\ninputs:\n- The PR that closes [T8.5] Build: Playwright happy path (add, complete, reload, still complete)\n- Issue [T8.5] Build: Playwright happy path (add, complete, reload, still complete)\n- Every doc listed in T8.5's inputs\n- `npx @astryxdesign/cli component <Name>` for each Astryx component the PR imports or names\nhandoff_to: done\ndone_when:\n- Verdict comment posted as `verdict: pass` or `verdict: changes` with the failing items listed\n- On pass: PR approved; orchestrator merges it and closes T8.5\n- On changes: one fix task opened per the retry rule and linked here; this review re-runs on the updated PR\nretry: if review returns changes, create one fix task for persona build, max 3, then persona plan\n\n## Acceptance\n- [ ] Verdict comment on the PR marks every done_when and Acceptance item of [T8.5] Build: Playwright happy path (add, complete, reload, still complete) as met or not met, with evidence (command output or screenshot)\n- [ ] The diff touches only paths in T8.5's owns\n- [ ] Every Astryx import in the diff matches the entry printed by `npx @astryxdesign/cli component <Name>`, and every prop used appears in that output\n- [ ] No hard-coded colors, spacing, radii, shadows, or fonts\n- [ ] `npm run typecheck`, `npm run lint`, `npm test`, and `npm run build` exit 0 when the reviewer runs them on the PR branch\n\n## Astryx\nnone"
+    }
+  ]
+}
