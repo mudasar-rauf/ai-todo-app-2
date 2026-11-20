@@ -1,0 +1,12 @@
+# Spike only: a check on every pull request into main, so the factory's App can
+# see check_suite, check_run and status webhooks. The backlog's tooling tasks
+# replace it with the app's real CI.
+name: spike-ci
+on:
+  pull_request:
+    branches: [main]
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "spike check passed"
